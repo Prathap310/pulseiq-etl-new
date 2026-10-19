@@ -1,0 +1,20 @@
+﻿# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Environment secrets
+.env
+.env.*
+
+# Test and tool caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# Generated database files
+*.duckdb
+*.db
+
+# Generated submission archive
+PQ-01-Task-1-Deliverables.zip

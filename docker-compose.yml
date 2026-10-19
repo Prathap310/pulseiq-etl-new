@@ -1,0 +1,11 @@
+﻿services:
+  etl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulseiq-etl
+    volumes:
+      - ./Data/Clean:/app/Data/Clean
+      - ./Data/Rejected:/app/Data/Rejected
+      - ./Logs:/app/Logs
+    command: ["python", "Src/run_pipeline.py"]
