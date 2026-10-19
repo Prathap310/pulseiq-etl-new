@@ -16,6 +16,7 @@ Generated (UTC): 2026-10-19
 - Metric dictionary: `Docs/metric-dictionary.md`
 - Automated tests: `tests/`
 - Dependencies: `requirements.txt`
+- Project overview and run instructions: `README.md`
 
 ## Latest validation counts
 
@@ -33,10 +34,12 @@ Generated (UTC): 2026-10-19
 - `docker compose config` passed.
 - ETL pipeline executed successfully using `docker compose run --rm etl`.
 - Docker-generated clean files, rejected files, and logs were verified in the Windows project folders.
-- All 10 automated tests passed after Docker execution.
+- All 10 automated tests passed in the previous verification run.
 - Python syntax compilation passed for the ETL entry point, validator, pipeline runner, Pandera schema, and test files.
 - Repeated pipeline runs produced consistent feed counts.
 - All four feeds reconcile: clean rows plus rejected rows equal input rows.
+- GitHub repository: `https://github.com/Prathap310/pulseiq-etl-new`
+- Task 1 commit `443981e` was pushed successfully to branch `master`.
 
 ## Outstanding data-quality issues
 
@@ -44,10 +47,9 @@ Generated (UTC): 2026-10-19
 - **fact_anomaly:** The separate `attendance_monthly_features` source is unavailable, so 221 attendance record references could not be verified.
 - **fact_attrition_risk:** 5 rows with `as_of_date` of `2026-03-31` are quarantined against the majority batch date `2026-09-30`. Confirm the intended batch date with the data owner.
 - **fact_task:** 20 rows quarantined: 12 have `completed_date` earlier than `started_date`, and 8 have missing completion dates despite status `Done`.
-- **Git:** No Git repository was found in the checked project directory or nearby folders. No repository was initialized.
 
 ## Current status
 
-The ETL pipeline, Pandera integration, automated tests, and Docker execution are working. Counts reconcile, and rejected rows retain rejection reasons.
+The ETL pipeline, Pandera integration, automated tests, and Docker execution are working. Counts reconcile, and rejected rows retain rejection reasons. The Task 1 commit has been published to GitHub.
 
-**Final production sign-off is still pending** data-owner decisions on the outstanding data-quality issues and final contract review.
+**Production sign-off remains pending** data-owner decisions on the outstanding data-quality issues and final contract review.
