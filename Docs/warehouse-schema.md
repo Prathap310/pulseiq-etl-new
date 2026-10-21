@@ -306,3 +306,36 @@ For future warehouse changes:
 - `Docs/warehouse-schema.md` - schema overview, grain definitions, relationships, validation results, and Mermaid diagram.
 
 **Status:** The warehouse load completed successfully across 23 tables and 61,937 source rows. All 39 foreign-key constraints are validated, and the foreign-key index audit returned zero missing entries. A second dry run passed, and a second applied load completed successfully with all 23 table row counts unchanged. The known employee-version overlap remains documented and unchanged. The named reference reconciliation files were not found in the project directory, so reference-based reconciliation remains outstanding.
+
+## Payroll Budget vs Actual Reconciliation
+
+**Source:** `Data/Raw/budget_payroll_dept_month.csv` compared with `dw.fact_payroll`, grouped by department and month.
+
+### Validation results
+
+| Check | Result |
+|---|---:|
+| Budget source rows | 198 |
+| Reconciliation rows | 198 |
+| Department-month pairs with both budget and actual records | 198 |
+| Missing required report values | 0 |
+| Records within 1% of budget | 34 / 198 |
+| Total budget | 862,030,000.00 |
+| Total actual employer cost | 861,997,359.88 |
+| Net variance (actual minus budget) | -32,640.12 |
+
+### Largest absolute variances
+
+| Department | Month | Budget | Actual employer cost | Variance | Variance % |
+|---|---|---:|---:|---:|---:|
+| D01 | 2025-04-01 | 23,340,000.00 | 21,428,108.75 | -1,911,891.25 | -8.19% |
+| D01 | 2026-02-01 | 19,785,000.00 | 18,257,769.48 | -1,527,230.52 | -7.72% |
+| D01 | 2026-04-01 | 24,848,000.00 | 26,231,966.92 | 1,383,966.92 | 5.57% |
+| D01 | 2026-03-01 | 17,135,000.00 | 18,392,959.45 | 1,257,959.45 | 7.34% |
+| D01 | 2025-10-01 | 18,900,000.00 | 18,100,730.82 | -799,269.18 | -4.23% |
+
+**Interpretation:** All 198 department-month pairs had both budget and actual records, and the report contained no missing required values. However, only 34 pairs were within 1% of budget. The net variance is small relative to the total budget because positive and negative differences offset each other; individual variances still require investigation.
+
+**Report:** `Reports/payroll_budget_reconciliation.csv`
+
+**Scope limitation:** This is a payroll budget-versus-actual variance analysis. The official reference-based reconciliation remains outstanding because the named reference reconciliation files were not found in the project directory.
