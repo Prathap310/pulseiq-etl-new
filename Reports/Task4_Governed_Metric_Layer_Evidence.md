@@ -116,7 +116,7 @@ The current SQL views aggregate these metrics by period end date and department,
 
 **Implementation status:** the dictionary and catalog are aligned with the existing department-month implementation.
 
-**Governance status:** this alignment is a proposed reporting definition, not proof of business-owner approval. Written confirmation is still required from the responsible owners before the reporting grain can be marked formally approved.
+**Governance status:** The project owner has confirmed that Payroll and Finance approval has been received for the reporting-grain alignment. The approval is recorded here as owner-reported; approver names, approval dates, and supporting written records were not available in this report. Formal approval evidence should be linked or retained when available.
 
 ## 10. Acceptance and outstanding governance
 
@@ -130,16 +130,13 @@ The current SQL views aggregate these metrics by period end date and department,
 - M25 production privacy check returned zero leaks.
 - Evidence includes the latest row counts and validation results.
 
-### Business approval status
+### Outstanding governance evidence
 
-The project owner has confirmed that Payroll and Finance approval has been received for the reporting-grain alignment. Approver names, approval dates, and supporting written approval records were not provided for this report.
+1. The project owner reports that Payroll approval was received for M07 (Gross pay), M08 (Net pay), and M15 (Leave without pay days).
+2. The project owner reports that Finance approval was received for M09 (Payroll cost).
+3. Approver names, approval dates, and supporting written records were not provided in this report.
 
-- **M07 – Gross pay:** Department x month — Payroll approval reported; supporting details not recorded here.
-- **M08 – Net pay:** Department x month — Payroll approval reported; supporting details not recorded here.
-- **M09 – Payroll cost:** Department x month — Finance approval reported; supporting details not recorded here.
-- **M15 – Leave without pay days:** Department x month — Payroll approval reported; supporting details not recorded here.
-
-**Evidence limitation:** Approval is reported by the project owner, but supporting written records have not been attached to this report. Technical validation results are documented separately. Approval evidence should be retained or linked when available.
+**Evidence limitation:** The approvals above are recorded as owner-reported. Written approval evidence should be linked or retained when available. Technical validation does not substitute for business-owner approval.
 ## 11. Git safety
 Other modified and untracked repository files are outside this Task 4 evidence update. Do not stage or commit unrelated project files as part of this work.
 
