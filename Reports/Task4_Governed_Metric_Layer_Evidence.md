@@ -1,22 +1,41 @@
+
 # Task 4 - Governed Metric Layer Evidence
 
-## Scope
-- SQL file: `Warehouse/metric_views.sql`
-- Metric views: M01-M28
-- Catalog view: `dw.metric_catalog`
+## 1. Scope
+- SQL implementation: `Warehouse/metric_views.sql`
+- Governed metric views: M01-M28
+- Metric catalog: `dw.metric_catalog`
+- Production database: `pulseiq_wh`
 
-## Implementation and deployment
+## 2. Implementation and deployment
 - Local SQL validation: PASS
-- PostgreSQL accepted the final SQL in a rollback-only transaction: PASS
+- PostgreSQL SQL validation: PASS
 - Deployment transaction committed: PASS
-- Deployed metric views found: 28
-- `dw.metric_catalog` present: YES
-- Catalog rows: 28
-- Queryability check for all discovered views: PASS
-- Latest all-view query returned rows for all 28 views without SQL errors: PASS
+- Metric views deployed: 28
+- Catalog entries: 28
+- All 28 metric views queried successfully: PASS
+- All 28 metric views returned rows: PASS
 
-## Representative metric validation
-Five independent source-to-view checks completed with zero mismatches:
+## 3. Latest metric-view queryability results
+
+| Metric IDs | Rows returned by each view |
+|---|---:|
+| M01-M06 | 891 |
+| M07-M15 | 198 |
+| M16-M19 | 18 |
+| M20-M23 | 1 |
+| M24-M25 | 608 |
+| M26 | 36 |
+| M27 | 13 |
+| M28 | 6 |
+
+All 28 metric queries completed without SQL errors. These results establish queryability and nonempty output, not formula correctness for every metric.
+
+The initial count of 29 objects matching the `m%` naming pattern included `metric_catalog`. The actual metric views are M01-M28, totaling 28.
+
+## 4. Representative metric validation
+
+Five independent source-to-view checks completed with zero mismatches.
 
 | Metric | Description | Rows checked | Mismatches | Result |
 |---|---|---:|---:|---|
@@ -26,85 +45,101 @@ Five independent source-to-view checks completed with zero mismatches:
 | M16 | Revenue | 18 | 0 | PASS |
 | M20 | Days Sales Outstanding | 1 | 0 | PASS |
 
-These checks validate the listed metric outputs against independently calculated source results for the tested rows. They do not establish formula correctness for every metric view.
+These checks validate the listed outputs against independently calculated source results for the tested rows. They do not establish formula correctness for every metric view.
 
-## Financial reconciliation
-M17 net profit reconciled against the underlying 4xxx and 5xxx ledger totals for five months:
-- May 2026: difference 0.00
-- June 2026: difference 0.00
-- July 2026: difference 0.00
-- August 2026: difference 0.00
-- September 2026: difference 0.00
+## 5. Financial reconciliation
 
-## Privacy validation
-Seventeen applicable metric views were checked for values exposed when
-`privacy_threshold_met = FALSE`.
-- Views checked: 17
+M17 net profit reconciled against the underlying ledger totals for five months.
+
+| Month | Difference | Result |
+|---|---:|---|
+| May 2026 | 0.00 | PASS |
+| June 2026 | 0.00 | PASS |
+| July 2026 | 0.00 | PASS |
+| August 2026 | 0.00 | PASS |
+| September 2026 | 0.00 | PASS |
+
+## 6. Privacy validation
+
+Seventeen applicable metric views were checked for values exposed when `privacy_threshold_met = FALSE`.
+
+- Applicable views checked: 17
 - Metric values exposed below threshold: 0
-- Result: PASS for the tested condition
+- Result for tested conditions: PASS
 
-Caveat: M25 had no currently suppressed rows in production, so production data did not exercise an actual below-threshold M25 group.
+### M25 isolated threshold test
 
-Isolated M25 suppression-logic tests:
-- Below-threshold case: four eligible completed tasks; average cycle time was NULL and `privacy_threshold_met` was FALSE. Result: PASS.
-- At-threshold case: five eligible completed tasks; average cycle time was 3.20 days and `privacy_threshold_met` was TRUE. Result: PASS.
-- Both-case assertion: TRUE.
-- Test transaction: rolled back successfully; test data and temporary view were not persisted.
-- Limitation: the test used a temporary view reproducing the M25 logic in `pulseiq_dq_test`. The deployed `dw.m25_average_cycle_time` view was absent from that database and was not directly tested by this procedure.
+The repository's M25 view definition was tested in the isolated `pulseiq_dq_test` database. Test records and the view were created inside a transaction that was rolled back.
 
-## Other reviewed results
+| Scenario | Eligible completed tasks | Average cycle time | Privacy threshold | Result |
+|---|---:|---:|---|---|
+| Below threshold | 4 | NULL | FALSE | PASS |
+| At threshold | 5 | 2.20 days | TRUE | PASS |
+
+The five-task scenario used durations of 1, 2, 3, 4, and 1 days. The average was 2.20 days. Both SQL assertions passed.
+
+### M25 production privacy check
+
+A read-only query against `dw.m25_average_cycle_time` in `pulseiq_wh` returned:
+
+| Check | Result |
+|---|---:|
+| Total groups | 608 |
+| Groups below threshold | 0 |
+| Groups meeting threshold | 608 |
+| Below-threshold groups exposing a non-NULL average | 0 |
+
+Result: PASS for the current production results. Production currently contains no below-threshold M25 groups, so the isolated test provides the evidence for that scenario.
+
+## 7. Other reviewed results
+
 - M22 task completion rate: 86.30%; threshold met.
 - M23 on-time delivery rate: 92.83%; threshold met.
-- M28 has six future forecast months (October 2026–March 2027) with NULL MAPE because actual headcount is not yet available. These are not measured forecast-accuracy results.
+- M28 has six future forecast months, October 2026 through March 2027, with NULL MAPE because actual headcount is not yet available. These are not measured forecast-accuracy results.
 
-## Catalog metadata note
-`minimum_group_size` is currently a text column. Values include `5`, `10`, `5 tasks`, and NULL. This preserves the mixed descriptions but means numeric threshold comparisons require explicit conversion or a separate numeric field.
+## 8. Catalog metadata note
 
-## Grain discrepancy requiring review
-The official metric dictionary specifies `Employee x month` for M07 (Gross pay), M08 (Net pay), M09 (Payroll cost), and M15 (Leave without pay days). Their implemented SQL views aggregate by `period_end_date` and `department_id`, applying a five-employee privacy threshold.
+`minimum_group_size` is currently a text column. Values include `5`, `10`, `5 tasks`, and NULL. Numeric threshold comparisons therefore require explicit conversion or a separate numeric field.
 
-The catalog metadata has been updated to describe these four metrics as `Department x month`, with caveats documenting the discrepancy with the official dictionary. This aligns the catalog descriptions with the current view implementation but does not resolve the conflicting specification.
+A dedicated numeric threshold field is an optional improvement unless a downstream consumer requires numeric comparisons.
 
-The starter SQL examples use department-month aggregation as a general pattern, but do not explicitly resolve the conflicting grain entries in the official metric dictionary. The intended reporting grain and business definitions still require confirmation from the appropriate metric owner. No formal owner approval is recorded.
+## 9. Metric-grain discrepancy
 
-## Remaining review / sign-off
-- Confirm the intended reporting grain for M07, M08, M09, and M15 with the appropriate metric owner.
-- Confirm final business definitions and reporting grains against the approved metric dictionary, especially financial and task metrics.
-- Consider a dedicated numeric threshold field if downstream reporting needs numeric comparisons.
-- Directly test the deployed M25 view with below-threshold data in an isolated test database, if practical.
-- Formal business-owner approval is not recorded in this evidence report.
+The official metric dictionary specifies Employee x month for:
 
-## Git safety
-The repository contains other modified and untracked files. Do not use `git add .` or commit unrelated project work as part of Task 4.
+- M07 - Gross pay
+- M08 - Net pay
+- M09 - Payroll cost
+- M15 - Leave without pay days
 
-This report records observed checks and known caveats; it is not a claim that all business definitions have received formal owner approval.
+The current SQL views aggregate these metrics by period end date and department, applying a five-employee privacy threshold.
 
-### M25 Privacy Threshold Validation — Actual View Definition
+The catalog describes these four metrics as Department x month and records the discrepancy with the official dictionary. The starter SQL examples use department-month aggregation as a general pattern but do not explicitly resolve the conflict.
 
-**Status: PASS**
+**Implementation decision for the current build:** retain the existing department-month views to preserve the tested implementation and group-level privacy behavior. Do not represent this engineering choice as formal business approval.
 
-The M25 average cycle time view definition from `Warehouse/metric_views.sql` was tested in the isolated `pulseiq_dq_test` database.
+**Requirement status:** the conflict with the official metric dictionary remains unresolved. The metric owner has not confirmed whether Department x month is an accepted replacement for Employee x month.
 
-| Scenario | Eligible completed tasks | Expected average | Privacy threshold | Result |
-|---|---:|---:|---|---|
-| Below threshold | 4 | NULL | Not met (`false`) | PASS |
-| At threshold | 5 | 2.20 days | Met (`true`) | PASS |
+## 10. Acceptance and outstanding governance
 
-The five-task test used cycle times of 1, 2, 3, 4, and 1 days, producing an average of 2.20 days. SQL assertions passed for both scenarios. The transaction was rolled back after validation.
+### Technical work completed
+- 28 metric views deployed and queryable.
+- 28 catalog entries present.
+- Five representative source-to-view checks passed.
+- M17 reconciled for May through September 2026.
+- Applicable privacy checks returned zero exposed values below threshold.
+- M25 isolated below-threshold and at-threshold tests passed.
+- M25 production privacy check returned zero leaks.
+- Evidence includes the latest row counts and validation results.
 
-**Scope note:** This validates the repository's M25 view definition in an isolated test database. It does not independently validate the deployed production view against below-threshold production data. No production data was changed by this test.
+### Outstanding external decisions
+1. Confirm whether M07, M08, M09, and M15 must follow Employee x month or may use Department x month.
+2. Obtain business-owner acceptance of the final metric definitions and reporting grains.
+3. Record formal business-owner sign-off.
 
-### M25 Production Privacy Verification
+No owner approval is claimed in this report. These governance items cannot be marked approved without an authorized decision.
 
-**Status: PASS**
+## 11. Git safety
+Other modified and untracked repository files are outside this Task 4 evidence update. Do not stage or commit unrelated project files as part of this work.
 
-A read-only query against the deployed `dw.m25_average_cycle_time` view in the `pulseiq_wh` database returned the following results:
-
-- Total groups: 608
-- Groups below the privacy threshold: 0
-- Groups meeting the privacy threshold: 608
-- Groups marked below threshold with a non-NULL average: 0
-
-**Conclusion:** No privacy leaks were detected in the current production results. Because no below-threshold groups were present, the below-threshold behavior is validated separately by the isolated M25 test.
-
-**Scope:** This check was read-only and did not modify production data.
+This report records observed technical results, implementation choices, limitations, and outstanding decisions. Successful SQL validation does not substitute for business-owner approval.
