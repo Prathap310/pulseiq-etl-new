@@ -130,13 +130,16 @@ The current SQL views aggregate these metrics by period end date and department,
 - M25 production privacy check returned zero leaks.
 - Evidence includes the latest row counts and validation results.
 
-### Outstanding external decisions
-1. Obtain written Payroll-owner confirmation of the Department x month reporting grain for M07, M08, and M15.
-2. Obtain written Finance-owner confirmation of the Department x month reporting grain for M09.
-3. Record formal business-owner sign-off for the final metric definitions and reporting grains.
+### Business approval status
 
-No owner approval is claimed in this report. These governance items cannot be marked approved without an authorized decision.
+The project owner has confirmed that Payroll and Finance approval has been received for the reporting-grain alignment. Approver names, approval dates, and supporting written approval records were not provided for this report.
 
+- **M07 – Gross pay:** Department x month — Payroll approval reported; supporting details not recorded here.
+- **M08 – Net pay:** Department x month — Payroll approval reported; supporting details not recorded here.
+- **M09 – Payroll cost:** Department x month — Finance approval reported; supporting details not recorded here.
+- **M15 – Leave without pay days:** Department x month — Payroll approval reported; supporting details not recorded here.
+
+**Evidence limitation:** Approval is reported by the project owner, but supporting written records have not been attached to this report. Technical validation results are documented separately. Approval evidence should be retained or linked when available.
 ## 11. Git safety
 Other modified and untracked repository files are outside this Task 4 evidence update. Do not stage or commit unrelated project files as part of this work.
 
