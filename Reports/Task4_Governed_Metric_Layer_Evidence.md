@@ -37,8 +37,20 @@ Seventeen applicable metric views were checked for values exposed when
 - Metric values exposed below threshold: 0
 - Result: PASS for the tested condition
 
-Caveat: M25 had no currently suppressed rows, so the check did not exercise
-an actual below-threshold M25 group.
+Caveat: M25 had no currently suppressed rows in production, so production
+data did not exercise an actual below-threshold M25 group.
+
+Isolated M25 suppression-logic tests:
+- Below-threshold case: four eligible completed tasks; average cycle time
+  was NULL and `privacy_threshold_met` was FALSE. Result: PASS.
+- At-threshold case: five eligible completed tasks; average cycle time was
+  3.20 days and `privacy_threshold_met` was TRUE. Result: PASS.
+- Both-case assertion: TRUE.
+- Test transaction: rolled back successfully; test data and temporary view
+  were not persisted.
+- Limitation: the test used a temporary view reproducing the M25 logic in
+  `pulseiq_dq_test`. The deployed `dw.m25_average_cycle_time` view was absent
+  from that database and was not directly tested by this procedure.
 
 ## Other reviewed results
 - M22 task completion rate: 86.30%; threshold met.
@@ -52,13 +64,29 @@ an actual below-threshold M25 group.
 `5 tasks`, and NULL. This preserves the mixed descriptions but means numeric
 threshold comparisons require explicit conversion or a separate numeric field.
 
+## Grain discrepancy requiring review
+The metric catalog describes M07 (Gross pay), M08 (Net pay), M09 (Payroll
+cost), and M15 (Leave without pay days) as `Employee x month`. Their current
+SQL views instead aggregate by `period_end_date` and `department_id`, and
+apply a five-employee privacy threshold.
+
+The starter SQL examples use department-month aggregation as a general
+pattern, but that does not explicitly resolve the conflicting grain entries
+in the official metric dictionary. The intended reporting grain must be
+confirmed with the metric owner before changing the SQL or catalog metadata.
+No change to these metric definitions is made by this report update.
+
 ## Remaining review / sign-off
+- Confirm the intended reporting grain for M07, M08, M09, and M15 with the
+  appropriate metric owner.
 - Confirm final business definitions and reporting grains against the approved
   metric dictionary, especially financial and task metrics.
 - Consider a dedicated numeric threshold field if downstream reporting needs
   numeric comparisons.
-- Exercise M25 with a below-threshold test case if practical.
+- Directly test the deployed M25 view with below-threshold data in an isolated
+  test database, if practical.
 - Review the report and SQL file before committing the intended Task 4 files.
+- Formal business-owner approval is not recorded in this evidence report.
 
 ## Git safety
 The repository contains other modified and untracked files. Do not use
