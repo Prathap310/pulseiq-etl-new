@@ -1,29 +1,41 @@
 ﻿# Task 5 — Workforce & Headcount Dashboard Evidence
 
-## 1. Objective
-Build an interactive workforce dashboard for headcount and workforce analysis.
+## Objective
+Deliver an interactive workforce dashboard using governed headcount, hires, and exits metrics.
 
-## 2. Dashboard components
-- KPI cards for headcount, hires, exits, and selected departments.
+## Dashboard features
+- Latest headcount, hires, exits, and selected-department KPI cards.
 - Monthly headcount trend.
-- Headcount by department.
-- Workforce by location tier.
-- Workforce by work mode.
-- Department and date filters.
-- Numerical insights accompanying charts.
-- Five CEO questions to support workforce analysis.
+- Average monthly headcount by department.
+- Current employee records by location tier.
+- Current employee records by work mode.
+- Department and reporting-date filters.
+- Numerical insights for the charts.
+- Five CEO workforce-planning questions.
 
-## 3. Data and governance
-The dashboard is designed to use governed metric views for headcount, hires, and exits, with workforce and organizational dimensions for breakdowns. Database access is configured as read-only.
+## Data governance
+- Headcount uses `dw.m01_headcount`.
+- Hires use `dw.m02_hires`.
+- Exits use `dw.m03_exits`.
+- The metric queries retain rows where `privacy_threshold_met = TRUE`.
+- Workforce breakdowns use employee and location dimensions.
 
-## 4. Validation performed
-- Dashboard file exists at `05_Starter/app.py`.
-- Python syntax validation passed using `python -m py_compile`.
-- Dashboard opened successfully in Streamlit.
-- Department and date filters were tested; displayed results changed when filters were applied.
-- Six screenshot evidence files were saved.
+## Validation results
+- Python syntax check passed.
+- Dashboard launched successfully in Streamlit.
+- Department and date filters were tested successfully.
+- KPI results matched the read-only database validation for the full reporting period:
+  - Latest headcount: 440 (September 2026)
+  - Hires in period: 81
+  - Exits in period: 5
+- Department averages matched the governed-view query.
+- Current employee dimension breakdowns reconciled to 745 records:
+  - Location tier: Tier 1 = 679, Tier 2 = 50, Tier 3 = 16.
+  - Work mode: Hybrid = 339, Onsite = 263, Remote = 143.
+- The department filter excludes the aggregate label `All Departments`; the expected selectable department count is 11.
+- The Executive Office has a current employee record but no privacy-approved headcount rows in the queried period. Its headcount must not be inferred from the employee dimension.
 
-## 5. Screenshot evidence
+## Evidence files
 Screenshots are stored in `Reports/Task5_Evidence/`:
 - `dashboard_overview.png`
 - `ceo_questions.png`
@@ -32,5 +44,5 @@ Screenshots are stored in `Reports/Task5_Evidence/`:
 - `Workforce by Location Tier.png`
 - `Workforce by Work Mode.png`
 
-## 6. Completion status
-Dashboard launch and filter interaction have been verified manually. This report does not claim that every data reconciliation, privacy rule, or acceptance criterion has been independently retested. Final review and Git commit are pending.
+## Completion status
+Dashboard launch, KPI comparison, chart-query comparison, and filter testing were reported as passed. This evidence records the checks performed; it does not imply independent verification of every possible edge case.
