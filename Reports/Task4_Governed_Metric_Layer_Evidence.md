@@ -93,3 +93,18 @@ The M25 average cycle time view definition from `Warehouse/metric_views.sql` was
 The five-task test used cycle times of 1, 2, 3, 4, and 1 days, producing an average of 2.20 days. SQL assertions passed for both scenarios. The transaction was rolled back after validation.
 
 **Scope note:** This validates the repository's M25 view definition in an isolated test database. It does not independently validate the deployed production view against below-threshold production data. No production data was changed by this test.
+
+### M25 Production Privacy Verification
+
+**Status: PASS**
+
+A read-only query against the deployed `dw.m25_average_cycle_time` view in the `pulseiq_wh` database returned the following results:
+
+- Total groups: 608
+- Groups below the privacy threshold: 0
+- Groups meeting the privacy threshold: 608
+- Groups marked below threshold with a non-NULL average: 0
+
+**Conclusion:** No privacy leaks were detected in the current production results. Because no below-threshold groups were present, the below-threshold behavior is validated separately by the isolated M25 test.
+
+**Scope:** This check was read-only and did not modify production data.
