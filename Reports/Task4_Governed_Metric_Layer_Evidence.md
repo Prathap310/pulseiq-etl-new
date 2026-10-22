@@ -78,3 +78,18 @@ The starter SQL examples use department-month aggregation as a general pattern, 
 The repository contains other modified and untracked files. Do not use `git add .` or commit unrelated project work as part of Task 4.
 
 This report records observed checks and known caveats; it is not a claim that all business definitions have received formal owner approval.
+
+### M25 Privacy Threshold Validation — Actual View Definition
+
+**Status: PASS**
+
+The M25 average cycle time view definition from `Warehouse/metric_views.sql` was tested in the isolated `pulseiq_dq_test` database.
+
+| Scenario | Eligible completed tasks | Expected average | Privacy threshold | Result |
+|---|---:|---:|---|---|
+| Below threshold | 4 | NULL | Not met (`false`) | PASS |
+| At threshold | 5 | 2.20 days | Met (`true`) | PASS |
+
+The five-task test used cycle times of 1, 2, 3, 4, and 1 days, producing an average of 2.20 days. SQL assertions passed for both scenarios. The transaction was rolled back after validation.
+
+**Scope note:** This validates the repository's M25 view definition in an isolated test database. It does not independently validate the deployed production view against below-threshold production data. No production data was changed by this test.
