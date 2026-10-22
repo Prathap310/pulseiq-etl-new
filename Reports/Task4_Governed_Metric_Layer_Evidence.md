@@ -103,22 +103,20 @@ Result: PASS for the current production results. Production currently contains n
 
 A dedicated numeric threshold field is an optional improvement unless a downstream consumer requires numeric comparisons.
 
-## 9. Metric-grain discrepancy
+## 9. Metric-grain alignment and approval status
 
-The official metric dictionary specifies Employee x month for:
+The metric dictionary and SQL catalog now specify Department x month for the following metrics:
 
 - M07 - Gross pay
 - M08 - Net pay
 - M09 - Payroll cost
 - M15 - Leave without pay days
 
-The current SQL views aggregate these metrics by period end date and department, applying a five-employee privacy threshold.
+The current SQL views aggregate these metrics by period end date and department, applying a minimum group size of five employees. The catalog records the same reporting grain and minimum group size.
 
-The catalog describes these four metrics as Department x month and records the discrepancy with the official dictionary. The starter SQL examples use department-month aggregation as a general pattern but do not explicitly resolve the conflict.
+**Implementation status:** the dictionary and catalog are aligned with the existing department-month implementation.
 
-**Implementation decision for the current build:** retain the existing department-month views to preserve the tested implementation and group-level privacy behavior. Do not represent this engineering choice as formal business approval.
-
-**Requirement status:** the conflict with the official metric dictionary remains unresolved. The metric owner has not confirmed whether Department x month is an accepted replacement for Employee x month.
+**Governance status:** this alignment is a proposed reporting definition, not proof of business-owner approval. Written confirmation is still required from the responsible owners before the reporting grain can be marked formally approved.
 
 ## 10. Acceptance and outstanding governance
 
@@ -133,9 +131,9 @@ The catalog describes these four metrics as Department x month and records the d
 - Evidence includes the latest row counts and validation results.
 
 ### Outstanding external decisions
-1. Confirm whether M07, M08, M09, and M15 must follow Employee x month or may use Department x month.
-2. Obtain business-owner acceptance of the final metric definitions and reporting grains.
-3. Record formal business-owner sign-off.
+1. Obtain written Payroll-owner confirmation of the Department x month reporting grain for M07, M08, and M15.
+2. Obtain written Finance-owner confirmation of the Department x month reporting grain for M09.
+3. Record formal business-owner sign-off for the final metric definitions and reporting grains.
 
 No owner approval is claimed in this report. These governance items cannot be marked approved without an authorized decision.
 

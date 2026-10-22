@@ -495,11 +495,11 @@ SELECT 'M05', 'Attrition rate (rolling 12 months)', 'Leavers in the last 12 mont
 UNION ALL
 SELECT 'M06', 'Voluntary attrition rate', 'Same as M05 but only resignations (voluntary_exits).', 'SUM(voluntary_exits, 12m) / AVG(headcount_end, 12m) x 100', 'fact_headcount_monthly', 'Department x month', '12 months', 'HR Analytics', 'percent', 'Lower is better', NULL, '10'
 UNION ALL
-SELECT 'M07', 'Gross pay', 'Total earnings before deductions for the month.', 'SUM(gross_pay)', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'INR', 'Context dependent', 'Includes overtime and variable pay. Metric dictionary specifies Employee x month; current view aggregates by department and month to retain group-level privacy.', '5'
+SELECT 'M07', 'Gross pay', 'Total earnings before deductions for the month.', 'SUM(gross_pay)', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'INR', 'Context dependent', 'Includes overtime and variable pay. Reporting grain: Department x month; minimum group size: 5.', '5'
 UNION ALL
-SELECT 'M08', 'Net pay', 'Take-home pay after employee deductions.', 'SUM(net_pay)', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'INR', 'Context dependent', 'Metric dictionary specifies Employee x month; current view aggregates by department and month to retain group-level privacy.', '5'
+SELECT 'M08', 'Net pay', 'Take-home pay after employee deductions.', 'SUM(net_pay)', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'INR', 'Context dependent', 'Reporting grain: Department x month; minimum group size: 5.', '5'
 UNION ALL
-SELECT 'M09', 'Payroll cost (employer cost)', 'Full cost of employees to the company: gross pay plus employer PF and ESI.', 'SUM(employer_cost)', 'fact_payroll', 'Department x month', 'Month', 'Finance', 'INR', 'Lower is better when output is equal', 'Must reconcile with ledger accounts 5001-5005. Metric dictionary specifies Employee x month; current view aggregates by department and month to retain group-level privacy.', '5'
+SELECT 'M09', 'Payroll cost (employer cost)', 'Full cost of employees to the company: gross pay plus employer PF and ESI.', 'SUM(employer_cost)', 'fact_payroll', 'Department x month', 'Month', 'Finance', 'INR', 'Lower is better when output is equal', 'Must reconcile with ledger accounts 5001-5005. Reporting grain: Department x month; minimum group size: 5.', '5'
 UNION ALL
 SELECT 'M10', 'Cost per head', 'Average employer cost per paid employee.', 'SUM(employer_cost) / COUNT(DISTINCT employee_id)', 'fact_payroll', 'Department x month', 'Month', 'Finance', 'INR', 'Context dependent', 'Part-month joiners lower the average', '5'
 UNION ALL
@@ -511,7 +511,7 @@ SELECT 'M13', 'Attendance rate', 'Days present (half day counts 0.5) divided by 
 UNION ALL
 SELECT 'M14', 'Late arrival rate', 'Late check-ins per present day.', 'SUM(late_arrivals) / SUM(present_days)', 'fact_attendance_monthly', 'Department x month', 'Month', 'HR Analytics', 'ratio', 'Lower is better', 'Work-from-home days use web check-in time', '5'
 UNION ALL
-SELECT 'M15', 'Leave without pay days', 'Unpaid absence and unpaid leave days.', 'SUM(lop_days) in fact_payroll', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'days', 'Lower is better', 'Half-day unpaid counts 0.5. Metric dictionary specifies Employee x month; current view aggregates by department and month to retain group-level privacy.', '5'
+SELECT 'M15', 'Leave without pay days', 'Unpaid absence and unpaid leave days.', 'SUM(lop_days) in fact_payroll', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'days', 'Lower is better', 'Half-day unpaid counts 0.5. Reporting grain: Department x month; minimum group size: 5.', '5'
 UNION ALL
 SELECT 'M16', 'Revenue', 'Income booked in the ledger (accounts 4001-4004).', '-SUM(signed_amount) for accounts 4001-4004', 'fact_ledger', 'Account x month', 'Month', 'Finance', 'INR', 'Higher is better', 'Excludes GST (booked to 2200)', NULL
 UNION ALL
