@@ -78,13 +78,16 @@ The dashboard loaded successfully, displayed charts, and the department filter w
 ## 7. Conclusion
 The Task 6 dashboard has been implemented, tested against selected PostgreSQL aggregates, committed, and pushed to GitHub. Further business-rule review and screenshot evidence remain.
 
-## 8. Leave Data Quality Finding — ML Records
+## 8. Leave Data Review — ML Records
 
-A read-only PostgreSQL review identified seven approved ML leave records, each containing 130 days, totaling 910 days.
+The leave-type dictionary defines ML as Maternity Leave, paid, with an annual quota of 182 days.
 
-A separate overlap query identified 14 overlapping pairs among these records.
+Seven approved ML requests were found, each recording 130 leave days, for a total of 910 days.
 
-**Assessment:** This pattern requires business-rule validation. It may represent synthetic test data, duplicate or overlapping requests, or a valid special leave arrangement. The records have not been modified.
+A date-overlap query identified 14 overlapping pairs across different employees. Follow-up checks in both PostgreSQL and the source CSV found no overlapping approved ML requests for the same employee.
 
-**Recommended follow-up:** Confirm the intended ML leave policy and whether overlapping approved requests are permitted. If not, investigate the source records and add an appropriate data-quality check.
+**Assessment:** The current checks do not establish a duplicate-request issue. The recorded leave-day totals and date ranges should be reviewed against the intended leave policy and source-data conventions before any correction is considered.
+
+**Action:** No warehouse records were modified. The finding is documented for business-rule review.
+
 
