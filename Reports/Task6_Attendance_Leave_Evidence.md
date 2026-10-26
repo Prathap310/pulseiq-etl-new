@@ -77,3 +77,14 @@ The dashboard loaded successfully, displayed charts, and the department filter w
 
 ## 7. Conclusion
 The Task 6 dashboard has been implemented, tested against selected PostgreSQL aggregates, committed, and pushed to GitHub. Further business-rule review and screenshot evidence remain.
+
+## 8. Leave Data Quality Finding — ML Records
+
+A read-only PostgreSQL review identified seven approved ML leave records, each containing 130 days, totaling 910 days.
+
+A separate overlap query identified 14 overlapping pairs among these records.
+
+**Assessment:** This pattern requires business-rule validation. It may represent synthetic test data, duplicate or overlapping requests, or a valid special leave arrangement. The records have not been modified.
+
+**Recommended follow-up:** Confirm the intended ML leave policy and whether overlapping approved requests are permitted. If not, investigate the source records and add an appropriate data-quality check.
+
