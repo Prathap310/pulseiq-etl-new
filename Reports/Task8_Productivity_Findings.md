@@ -39,7 +39,7 @@ Detailed verification output: `Reports/Task8_Team_Verification.csv`.
 
 1. **Highest completed story-point total:** Support Tooling recorded 401 points in Sprint 37 within the selected dashboard scope.
 2. **Longest average cycle time among groups meeting the five-task threshold:** Growth Marketing recorded 7.64 days in Sprint 13.
-3. **Blocked and reopened work:** Support Tooling had 177 blocked tasks and 142 reopened events in the selected scope. These counts indicate areas for investigation, not a standalone judgment of team performance.
+3. **Blocked and reopened work:** Support Tooling had the most blocked tasks (177). Sales Enablement had the most reopened events (150), followed by Support Tooling (142). These counts indicate areas for investigation, not a standalone judgment of team performance.
 
 ## 4. Dashboard features
 
