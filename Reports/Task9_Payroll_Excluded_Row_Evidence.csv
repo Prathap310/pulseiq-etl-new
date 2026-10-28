@@ -1,0 +1,5 @@
+payroll_item_id,classification,matching_payroll_item_id,employee_id,period,department_id,employer_cost,evidence,treatment
+PI-X0001,CONFIRMED_DUPLICATE,PI-004059,EMP-0194,2026-02,D02,154811.89,Exact employee-period duplicate; payroll amounts match the existing record.,Exclude from corrected analytical totals; preserve original source row.
+PI-X0002,CONFIRMED_DUPLICATE,PI-000761,EMP-0598,2025-05,D08,61813.15,Exact employee-period duplicate; payroll amounts match the existing record.,Exclude from corrected analytical totals; preserve original source row.
+PI-X0003,LEDGER_MISMATCH_CANDIDATE,,EMP-9001,2026-04,D01,96015.0,No matching employee-period record; employer cost equals the April department-month payroll-ledger discrepancy.,Flag for investigation; do not automatically exclude without validation evidence.
+PI-X0004,LEDGER_MISMATCH_CANDIDATE,,EMP-9002,2025-12,D09,98327.42,No matching employee-period record; employer cost equals the December department-month payroll-ledger discrepancy.,Flag for investigation; do not automatically exclude without validation evidence.
