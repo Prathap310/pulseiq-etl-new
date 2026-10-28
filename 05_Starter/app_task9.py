@@ -16,14 +16,15 @@ REPORT_DIR = ROOT / "Reports"
 MIN_GROUP_SIZE = 5
 
 DUPLICATE_IDS = {"PI-X0001", "PI-X0002"}
+ORPHAN_PAYROLL_IDS = {"PI-X0003", "PI-X0004"}
 REVENUE_ACCOUNTS = {"4001", "4002", "4003", "4004"}
 PAYROLL_ACCOUNTS = {"5001", "5002", "5003", "5004", "5005"}
 
 st.title("Task 9 — Payroll Cost & Reconciliation")
 st.caption(
     "Payroll analytics, budget variance, and payroll-to-ledger reconciliation. "
-    "Two confirmed duplicate rows are excluded from analytical totals. "
-    "Unresolved exceptions remain visible."
+    "Two confirmed duplicate rows and two orphan foreign-key rows are excluded from analytical totals. "
+    "All four exceptions remain visible in the evidence section."
 )
 
 with st.expander("Metric definitions and privacy rules", expanded=False):
@@ -164,7 +165,7 @@ if missing:
 
 
 # ---------------------------------------------------------------------
-# Prepare payroll and exclude only confirmed duplicates
+# Prepare payroll and exclude confirmed duplicates and orphan foreign-key rows
 # ---------------------------------------------------------------------
 payroll["period_end_date"] = pd.to_datetime(
     payroll["period_end_date"], errors="coerce"
@@ -186,9 +187,14 @@ for column in numeric_columns:
 payroll["is_confirmed_duplicate"] = payroll["payroll_item_id"].isin(
     DUPLICATE_IDS
 )
+payroll["is_orphan_foreign_key"] = payroll["payroll_item_id"].isin(
+    ORPHAN_PAYROLL_IDS
+)
 
+# Exclude invalid rows from analytical calculations; preserve the source CSV and evidence.
 clean_payroll = payroll[
     ~payroll["is_confirmed_duplicate"]
+    & ~payroll["is_orphan_foreign_key"]
 ].copy()
 
 department_map = departments.set_index("department_id")[
@@ -674,7 +680,7 @@ else:
 st.header("Payroll exception evidence")
 st.caption(
     "PI-X0001 and PI-X0002 are confirmed duplicates. "
-    "PI-X0003 and PI-X0004 are ledger-mismatch candidates pending validation."
+    "PI-X0003 and PI-X0004 are orphan foreign-key exceptions because their employee IDs are absent from dim_employee."
 )
 
 evidence_view = excluded_evidence.copy()
@@ -718,8 +724,9 @@ st.download_button(
 
 st.caption(
     "The original source files remain unchanged. Two confirmed duplicates "
-    "are excluded from analytical totals; two ledger-mismatch candidates "
-    "remain included pending validation. The official PQ-09 answer key was "
+    "and two orphan foreign-key rows are excluded from analytical totals. "
+    "The official PQ-09 answer key was "
     "not found in the project locations checked, so no official validation "
     "score is claimed."
 )
+
