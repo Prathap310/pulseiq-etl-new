@@ -71,3 +71,16 @@ Evidence report: `Reports/Task11_Profit_Loss_Analytics_Evidence.md`
 
 ## 9. Overall Status
 Dashboard implementation and the listed technical validations are complete. README reference comparison and final Git submission remain pending.
+
+## 10. Screenshot Evidence
+
+Screenshots are saved in `Reports/Task11_Screenshots/`.
+
+- Task11_Dashboard_Overview.png — Overall dashboard KPIs.
+- Task11_Monthly revenue, expenses and profit.png — Monthly financial trend.
+- Task11_Profit & Loss statement.png — P&L statement.
+- Task11_Expense analysis by category.png — Expense category analysis.
+- Task11_Expense analysis by category1.png — Additional expense category evidence.
+- Task11_Top 10 vendors by expense.png — Top vendor analysis.
+- Task11_Top 10 vendors by expense1.png — Additional vendor evidence.
+- Task11_Expense-to-ledger reconciliation.png — Reconciliation results.
