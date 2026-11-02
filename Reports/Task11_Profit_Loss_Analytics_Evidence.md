@@ -84,3 +84,16 @@ Screenshots are saved in `Reports/Task11_Screenshots/`.
 - Task11_Top 10 vendors by expense.png — Top vendor analysis.
 - Task11_Top 10 vendors by expense1.png — Additional vendor evidence.
 - Task11_Expense-to-ledger reconciliation.png — Reconciliation results.
+
+### README and Delivery Report Verification
+
+The README and its linked `Docs/PQ-01-Task-1-Delivery-Report.md` were reviewed.
+
+The documents contain ETL validation counts:
+- Input rows: 29,775
+- Accepted/Clean rows: 29,345
+- Rejected rows: 430
+
+No reference values for revenue, expenses, profit, or profit margin were found. These ETL row counts are not comparable to P&L financial totals.
+
+**Conclusion:** README reference availability was verified, but numerical P&L reconciliation remains pending until financial reference figures are provided. No reference values have been assumed or invented.
