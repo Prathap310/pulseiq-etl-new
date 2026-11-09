@@ -1,25 +1,29 @@
-﻿# PulseIQ - PQ-01 ETL Pipeline
+﻿# PulseIQ Analytics Project
 
-Repeatable ETL pipeline for validating PulseIQ data feeds, retaining rejected records with reasons, and logging row counts.
+## Project Overview
 
-## Run the pipeline
+This repository contains the PulseIQ Analytics project, organized into three phases. Each phase contains a set of tasks completed as part of the project.
 
-Requirements: Docker Desktop running.
+The project covers ETL pipeline development, data warehousing, data quality validation, analytics, reporting, and dashboard development.
 
-    docker compose run --rm etl
+## Repository Structure
 
-## Validation summary
-
-- Input rows: 29,775
-- Accepted rows: 29,345
-- Rejected rows: 430
-
-## Documentation
-
-- [Delivery report](Docs/PQ-01-Task-1-Delivery-Report.md)
-- [Data contract notes](Docs/data-contract-notes.md)
-- [Metric dictionary](Docs/metric-dictionary.md)
-
-## GitHub repository
-
-https://github.com/Prathap310/pulseiq-etl-new
+```text
+pulseiq-etl-new/
+├── README.md
+├── phase-1/
+│   └── README.md
+├── phase-2/
+│   └── README.md
+├── phase-3/
+│   └── README.md
+├── 03_Data/
+├── 05_Starter/
+├── Data/
+├── Data_Quality/
+├── Docs/
+├── Logs/
+├── Reports/
+├── Src/
+├── Warehouse/
+└── tests/
