@@ -1,0 +1,15 @@
+check_id,check_name,severity,bad_row_count,status,verification_method
+DQ-C01,Payroll equals ledger,critical,5,FAIL,read-only SQL
+DQ-C02,Ledger balanced,critical,0,PASS,read-only SQL
+DQ-C03,Unique payroll rows,critical,2,FAIL,read-only SQL
+DQ-C04,No orphan employees,critical,2,FAIL,read-only SQL
+DQ-C05,No attendance after exit month,warning,4,FAIL,read-only SQL
+DQ-C06,Unpaid leave deducted,warning,41,FAIL,read-only SQL
+DQ-C07,Invoice arithmetic,warning,1,FAIL,read-only SQL
+DQ-C08,Expense arithmetic,warning,1,FAIL,read-only SQL
+DQ-C09,Task dates sensible,warning,20,FAIL,read-only SQL
+DQ-C10,Leave dates sensible,warning,2,FAIL,read-only SQL
+DQ-C11,AI feeds fresh,warning,835,FAIL,read-only SQL
+DQ-C12,Dimension history does not overlap,critical,0,PASS,read-only SQL
+DQ-C13,Pipeline freshness,critical,0,PASS,pipeline artifact freshness
+DQ-C14,Minimum group size,critical,1419,FAIL,metric group query

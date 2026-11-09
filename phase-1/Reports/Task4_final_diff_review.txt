@@ -1,0 +1,86 @@
+﻿diff --git a/03_Data/csv/metric_dictionary.csv b/03_Data/csv/metric_dictionary.csv
+index 34935f9..fac644a 100644
+--- a/03_Data/csv/metric_dictionary.csv
++++ b/03_Data/csv/metric_dictionary.csv
+@@ -6,7 +6,7 @@ M04,Attrition rate (monthly),Share of people who left in the month.,Exits / head
+ M05,Attrition rate (rolling 12 months),Leavers in the last 12 months divided by average headcount over the same months.,"SUM(exits, 12m) / AVG(headcount_end, 12m) x 100",fact_headcount_monthly,Department x month,12 months,HR Analytics,percent,Lower is better,Use for headline reporting; monthly is too noisy,10
+ M06,Voluntary attrition rate,Same as M05 but only resignations (voluntary_exits).,"SUM(voluntary_exits, 12m) / AVG(headcount_end, 12m) x 100",fact_headcount_monthly,Department x month,12 months,HR Analytics,percent,Lower is better,,10
+-M07,Gross pay,Total earnings before deductions for the month.,SUM(gross_pay),fact_payroll,Employee x month,Month,Payroll,INR,Context dependent,Includes overtime and variable pay,5
+-M08,Net pay,Take-home pay after employee deductions.,SUM(net_pay),fact_payroll,Employee x month,Month,Payroll,INR,Context dependent,,5
+-M09,Payroll cost (employer cost),Full cost of employees to the company: gross pay plus employer PF and ESI.,SUM(employer_cost),fact_payroll,Employee x month,Month,Finance,INR,Lower is better when output is equal,Must reconcile with ledger accounts 5001-5005,5
++M07,Gross pay,Total earnings before deductions for the month.,SUM(gross_pay),fact_payroll,Department x month,Month,Payroll,INR,Context dependent,Includes overtime and variable pay,5
++M08,Net pay,Take-home pay after employee deductions.,SUM(net_pay),fact_payroll,Department x month,Month,Payroll,INR,Context dependent,,5
++M09,Payroll cost (employer cost),Full cost of employees to the company: gross pay plus employer PF and ESI.,SUM(employer_cost),fact_payroll,Department x month,Month,Finance,INR,Lower is better when output is equal,Must reconcile with ledger accounts 5001-5005,5
+ M10,Cost per head,Average employer cost per paid employee.,SUM(employer_cost) / COUNT(DISTINCT employee_id),fact_payroll,Department x month,Month,Finance,INR,Context dependent,Part-month joiners lower the average,5
+ M11,Overtime share,How much of payroll cost is overtime pay.,SUM(overtime_pay) / SUM(employer_cost) x 100,fact_payroll,Department x month,Month,Payroll,percent,Lower is better,Only overtime-eligible roles earn overtime,5
+@@ -14,5 +14,5 @@ M12,Variable pay share,"Bonus, incentive and award pay as a share of gross pay."
+ M13,Attendance rate,Days present (half day counts 0.5) divided by scheduled working days.,(SUM(present_days) + 0.5 x SUM(half_days_unpaid)) / SUM(scheduled_days),fact_attendance_monthly,Department x month,Month,HR Analytics,ratio,Higher is better,Paid leave counts as not present,5
+ M14,Late arrival rate,Late check-ins per present day.,SUM(late_arrivals) / SUM(present_days),fact_attendance_monthly,Department x month,Month,HR Analytics,ratio,Lower is better,Work-from-home days use web check-in time,5
+-M15,Leave without pay days,Unpaid absence and unpaid leave days.,SUM(lop_days) in fact_payroll,fact_payroll,Employee x month,Month,Payroll,days,Lower is better,Half-day unpaid counts 0.5,5
++M15,Leave without pay days,Unpaid absence and unpaid leave days.,SUM(lop_days) in fact_payroll,fact_payroll,Department x month,Month,Payroll,days,Lower is better,Half-day unpaid counts 0.5,5
+ M16,Revenue,Income booked in the ledger (accounts 4001-4004).,-SUM(signed_amount) for accounts 4001-4004,fact_ledger,Account x month,Month,Finance,INR,Higher is better,Excludes GST (booked to 2200),
+ M17,Net profit,Revenue minus all expenses (4xxx less 5xxx).,-SUM(signed_amount) for accounts 4xxx and 5xxx,fact_ledger,Month,Month,Finance,INR,Higher is better,Interest income (4900) is included,
+diff --git a/Reports/Task4_Governed_Metric_Layer_Evidence.md b/Reports/Task4_Governed_Metric_Layer_Evidence.md
+index 6bc522f..841143a 100644
+--- a/Reports/Task4_Governed_Metric_Layer_Evidence.md
++++ b/Reports/Task4_Governed_Metric_Layer_Evidence.md
+@@ -104,7 +104,7 @@ Result: PASS for the current production results. Production currently contains n
+ A dedicated numeric threshold field is an optional improvement unless a downstream consumer requires numeric comparisons.
+ 
+-## 9. Metric-grain discrepancy
++## 9. Metric-grain alignment and approval status
+ 
+-The official metric dictionary specifies Employee x month for:
++The metric dictionary and SQL catalog now specify Department x month for the following metrics:
+ 
+ - M07 - Gross pay
+@@ -113,11 +113,9 @@ The official metric dictionary specifies Employee x month for:
+ - M15 - Leave without pay days
+ 
+-The current SQL views aggregate these metrics by period end date and department, applying a five-employee privacy threshold.
++The current SQL views aggregate these metrics by period end date and department, applying a minimum group size of five employees. The catalog records the same reporting grain and minimum group size.
+ 
+-The catalog describes these four metrics as Department x month and records the discrepancy with the official dictionary. The starter SQL examples use department-month aggregation as a general pattern but do not explicitly resolve the conflict.
++**Implementation status:** the dictionary and catalog are aligned with the existing department-month implementation.
+ 
+-**Implementation decision for the current build:** retain the existing department-month views to preserve the tested implementation and group-level privacy behavior. Do not represent this engineering choice as formal business approval.
+-
+-**Requirement status:** the conflict with the official metric dictionary remains unresolved. The metric owner has not confirmed whether Department x month is an accepted replacement for Employee x month.
++**Governance status:** this alignment is a proposed reporting definition, not proof of business-owner approval. Written confirmation is still required from the responsible owners before the reporting grain can be marked formally approved.
+ 
+ ## 10. Acceptance and outstanding governance
+@@ -134,7 +132,7 @@ The catalog describes these four metrics as Department x month and records the d
+ 
+ ### Outstanding external decisions
+-1. Confirm whether M07, M08, M09, and M15 must follow Employee x month or may use Department x month.
+-2. Obtain business-owner acceptance of the final metric definitions and reporting grains.
+-3. Record formal business-owner sign-off.
++1. Obtain written Payroll-owner confirmation of the Department x month reporting grain for M07, M08, and M15.
++2. Obtain written Finance-owner confirmation of the Department x month reporting grain for M09.
++3. Record formal business-owner sign-off for the final metric definitions and reporting grains.
+ 
+ No owner approval is claimed in this report. These governance items cannot be marked approved without an authorized decision.
+diff --git a/Warehouse/metric_views.sql b/Warehouse/metric_views.sql
+index 8c5da4d..c2006b3 100644
+--- a/Warehouse/metric_views.sql
++++ b/Warehouse/metric_views.sql
+@@ -496,9 +496,9 @@ UNION ALL
+ SELECT 'M06', 'Voluntary attrition rate', 'Same as M05 but only resignations (voluntary_exits).', 'SUM(voluntary_exits, 12m) / AVG(headcount_end, 12m) x 100', 'fact_headcount_monthly', 'Department x month', '12 months', 'HR Analytics', 'percent', 'Lower is better', NULL, '10'
+ UNION ALL
+-SELECT 'M07', 'Gross pay', 'Total earnings before deductions for the month.', 'SUM(gross_pay)', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'INR', 'Context dependent', 'Includes overtime and variable pay. Metric dictionary specifies Employee x month; current view aggregates by department and month to retain group-level privacy.', '5'
++SELECT 'M07', 'Gross pay', 'Total earnings before deductions for the month.', 'SUM(gross_pay)', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'INR', 'Context dependent', 'Includes overtime and variable pay. Reporting grain: Department x month; minimum group size: 5.', '5'
+ UNION ALL
+-SELECT 'M08', 'Net pay', 'Take-home pay after employee deductions.', 'SUM(net_pay)', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'INR', 'Context dependent', 'Metric dictionary specifies Employee x month; current view aggregates by department and month to retain group-level privacy.', '5'
++SELECT 'M08', 'Net pay', 'Take-home pay after employee deductions.', 'SUM(net_pay)', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'INR', 'Context dependent', 'Reporting grain: Department x month; minimum group size: 5.', '5'
+ UNION ALL
+-SELECT 'M09', 'Payroll cost (employer cost)', 'Full cost of employees to the company: gross pay plus employer PF and ESI.', 'SUM(employer_cost)', 'fact_payroll', 'Department x month', 'Month', 'Finance', 'INR', 'Lower is better when output is equal', 'Must reconcile with ledger accounts 5001-5005. Metric dictionary specifies Employee x month; current view aggregates by department and month to retain group-level privacy.', '5'
++SELECT 'M09', 'Payroll cost (employer cost)', 'Full cost of employees to the company: gross pay plus employer PF and ESI.', 'SUM(employer_cost)', 'fact_payroll', 'Department x month', 'Month', 'Finance', 'INR', 'Lower is better when output is equal', 'Must reconcile with ledger accounts 5001-5005. Reporting grain: Department x month; minimum group size: 5.', '5'
+ UNION ALL
+ SELECT 'M10', 'Cost per head', 'Average employer cost per paid employee.', 'SUM(employer_cost) / COUNT(DISTINCT employee_id)', 'fact_payroll', 'Department x month', 'Month', 'Finance', 'INR', 'Context dependent', 'Part-month joiners lower the average', '5'
+@@ -512,5 +512,5 @@ UNION ALL
+ SELECT 'M14', 'Late arrival rate', 'Late check-ins per present day.', 'SUM(late_arrivals) / SUM(present_days)', 'fact_attendance_monthly', 'Department x month', 'Month', 'HR Analytics', 'ratio', 'Lower is better', 'Work-from-home days use web check-in time', '5'
+ UNION ALL
+-SELECT 'M15', 'Leave without pay days', 'Unpaid absence and unpaid leave days.', 'SUM(lop_days) in fact_payroll', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'days', 'Lower is better', 'Half-day unpaid counts 0.5. Metric dictionary specifies Employee x month; current view aggregates by department and month to retain group-level privacy.', '5'
++SELECT 'M15', 'Leave without pay days', 'Unpaid absence and unpaid leave days.', 'SUM(lop_days) in fact_payroll', 'fact_payroll', 'Department x month', 'Month', 'Payroll', 'days', 'Lower is better', 'Half-day unpaid counts 0.5. Reporting grain: Department x month; minimum group size: 5.', '5'
+ UNION ALL
+ SELECT 'M16', 'Revenue', 'Income booked in the ledger (accounts 4001-4004).', '-SUM(signed_amount) for accounts 4001-4004', 'fact_ledger', 'Account x month', 'Month', 'Finance', 'INR', 'Higher is better', 'Excludes GST (booked to 2200)', NULL

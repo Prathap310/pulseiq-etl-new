@@ -1,0 +1,5 @@
+table,rows_in,rows_passed,rows_quarantined,counts_reconcile
+fact_task,28868,28848,20,True
+fact_anomaly,405,0,405,True
+fact_attrition_risk,430,425,5,True
+fact_forecast,72,72,0,True

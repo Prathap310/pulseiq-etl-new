@@ -1,0 +1,15 @@
+﻿check_id,check_name,table_name,bad_row_count,status,run_at,details
+DQ-C01,Payroll equals ledger,dw.fact_payroll + dw.fact_ledger,5,FAIL,2026-10-21 13:21:52.836926+00:00,severity=critical; bad_rows=5
+DQ-C02,Ledger balanced,dw.fact_ledger,0,PASS,2026-10-21 13:21:52.836926+00:00,severity=critical; bad_rows=0
+DQ-C03,Unique payroll rows,dw.fact_payroll,2,FAIL,2026-10-21 13:21:52.836926+00:00,severity=critical; bad_rows=2
+DQ-C04,No orphan employees,dw.fact_payroll + dw.dim_employee,2,FAIL,2026-10-21 13:21:52.836926+00:00,severity=critical; bad_rows=2
+DQ-C05,No attendance after exit month,dw.fact_attendance_monthly + dw.dim_employee,4,FAIL,2026-10-21 13:21:52.836926+00:00,severity=warning; bad_rows=4
+DQ-C06,Unpaid leave deducted,dw.fact_attendance_monthly + dw.fact_payroll,41,FAIL,2026-10-21 13:21:52.836926+00:00,severity=warning; bad_rows=41
+DQ-C07,Invoice arithmetic,dw.fact_invoice,1,FAIL,2026-10-21 13:21:52.836926+00:00,severity=warning; bad_rows=1
+DQ-C08,Expense arithmetic,dw.fact_expense,1,FAIL,2026-10-21 13:21:52.836926+00:00,severity=warning; bad_rows=1
+DQ-C09,Task dates sensible,dw.fact_task,20,FAIL,2026-10-21 13:21:52.836926+00:00,severity=warning; bad_rows=20
+DQ-C10,Leave dates sensible,dw.fact_leave,2,FAIL,2026-10-21 13:21:52.836926+00:00,severity=warning; bad_rows=2
+DQ-C11,AI feeds fresh,dw.fact_attrition_risk + dw.fact_anomaly,835,FAIL,2026-10-21 13:21:52.836926+00:00,severity=warning; bad_rows=835
+DQ-C12,Dimension history does not overlap,dw.dim_employee,0,PASS,2026-10-21 13:21:52.836926+00:00,severity=critical; bad_rows=0
+DQ-C13,Pipeline freshness,Logs/pipeline_runs.csv,0,PASS,2026-10-21 13:21:52.836926+00:00,severity=critical; bad_rows=0
+DQ-C14,Minimum group size,metric_dictionary.csv + dw.fact_payroll,1419,FAIL,2026-10-21 13:21:52.836926+00:00,"severity=critical; metric_group_violations=1419; by_metric=[M01=81, M02=314, M03=227, M04=245, M05=231, M06=231, M10=18, M11=18, M12=18, M13=18, M14=18, M22=0, M23=0, M25=0, M27=0]; M07/M08/M09/M15 excluded: employee-level grain requires a separate exposure-policy decision."
