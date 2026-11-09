@@ -1,0 +1,13 @@
+team_name,metric,manual_source_value,dashboard_value,difference,verification_status
+Analytics & BI,Total tasks,1135.0,1135.0,0.0,PASS
+Analytics & BI,Non-cancelled tasks,1093.0,1093.0,0.0,PASS
+Analytics & BI,Done tasks,983.0,983.0,0.0,PASS
+Analytics & BI,On-time completed tasks,921.0,921.0,0.0,PASS
+Analytics & BI,Completion rate (%),89.94,89.94,0.0,PASS
+Analytics & BI,On-time delivery (%),93.69,93.69,0.0,PASS
+Data Platform,Total tasks,1061.0,1061.0,0.0,PASS
+Data Platform,Non-cancelled tasks,1025.0,1025.0,0.0,PASS
+Data Platform,Done tasks,889.0,889.0,0.0,PASS
+Data Platform,On-time completed tasks,841.0,841.0,0.0,PASS
+Data Platform,Completion rate (%),86.73,86.73,0.0,PASS
+Data Platform,On-time delivery (%),94.6,94.6,0.0,PASS

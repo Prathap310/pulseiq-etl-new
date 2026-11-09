@@ -1,0 +1,4 @@
+﻿department_id,month,budget_payroll_cost,actual_payroll_cost,variance_actual_minus_budget,variance_pct,privacy_threshold_met,manual_check
+D01,2025-04-01,23340000.00,21428108.75,-1911891.25,-8.19,True,PASS
+D04,2025-04-01,5481000.00,5885879.82,404879.82,7.39,True,PASS
+D01,2026-04-01,24848000.00,26231966.92,1383966.92,5.57,True,PASS
