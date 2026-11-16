@@ -78,7 +78,10 @@ CHECKS = [
     ("DQ-C06", "Unpaid leave deducted", "dw.fact_attendance_monthly + dw.fact_payroll", "warning", """
         WITH a AS (
             SELECT employee_id, DATE_TRUNC('month',period_end_date)::date AS period,
-                   SUM(COALESCE(unpaid_absence_days,0)) AS unpaid_days
+                   SUM(
+                       COALESCE(unpaid_absence_days,0)
+                       + COALESCE(half_days_unpaid,0) * 0.5
+                   ) AS unpaid_days
             FROM dw.fact_attendance_monthly
             GROUP BY 1,2
         ),

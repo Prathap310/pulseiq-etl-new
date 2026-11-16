@@ -1,0 +1,21 @@
+PulseIQ Data Quality Gatekeeper
+Started UTC: 2026-11-16T18:33:30+00:00
+
+DATA QUALITY SUMMARY
+------------------------------------------------------------------------------
+DQ-C01 | FAIL  | bad rows:    1 | Payroll equals ledger
+DQ-C02 | PASS  | bad rows:    0 | Ledger balanced
+DQ-C03 | PASS  | bad rows:    0 | Unique payroll rows
+DQ-C04 | PASS  | bad rows:    0 | No orphan employees
+DQ-C05 | PASS  | bad rows:    0 | No attendance after exit month
+DQ-C06 | PASS  | bad rows:    0 | Unpaid leave deducted
+DQ-C07 | PASS  | bad rows:    0 | Invoice arithmetic
+DQ-C08 | PASS  | bad rows:    0 | Expense arithmetic
+DQ-C09 | PASS  | bad rows:    0 | Task dates sensible
+DQ-C10 | PASS  | bad rows:    0 | Leave dates sensible
+DQ-C11 | FAIL  | bad rows:  835 | AI feeds fresh
+DQ-C12 | PASS  | bad rows:    0 | Dimension history does not overlap
+DQ-C13 | PASS  | bad rows:    0 | Pipeline freshness
+DQ-C14 | PASS  | bad rows:    0 | Minimum group size
+------------------------------------------------------------------------------
+Total: 14 | PASS: 12 | FAIL: 2 | ERROR: 0

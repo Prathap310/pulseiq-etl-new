@@ -1,5 +1,5 @@
 employee_key,employee_id,full_name,gender,date_of_birth,hire_date,exit_date,employment_status,employment_type,department_id,role_id,role_title,job_level,manager_id,work_location,work_mode,highest_education,valid_from,valid_to,is_current,change_reason
-100000,EMP-0001,Ganesh Murthy,Male,1989-10-08,2012-01-19,2020-01-24,Resigned,Permanent,D01,R002,Associate Software Engineer,1,EMP-0051,Pune,Hybrid,B.E. Computer Science,2012-01-19,2012-05-12,N,Joining
+100000,EMP-0001,Ganesh Murthy,Male,1989-10-08,2012-01-19,2020-01-24,Resigned,Permanent,D01,R002,Associate Software Engineer,1,EMP-0051,Pune,Hybrid,B.E. Computer Science,2012-01-19,2012-05-02,N,Joining
 100001,EMP-0001,Ganesh Murthy,Male,1989-10-08,2012-01-19,2020-01-24,Resigned,Permanent,D01,R002,Associate Software Engineer,1,EMP-0002,Pune,Hybrid,B.E. Computer Science,2012-05-03,2015-05-13,N,Manager Change
 100002,EMP-0001,Ganesh Murthy,Male,1989-10-08,2012-01-19,2020-01-24,Resigned,Permanent,D01,R002,Associate Software Engineer,1,EMP-0002,Pune,Hybrid,B.E. Computer Science,2015-05-14,2020-01-24,Y,Manager Change
 100003,EMP-0002,Jatin Jayaraman,Male,1973-06-25,2012-01-31,,Active,Permanent,D01,R007,Tech Lead,4,EMP-0051,Pune,Remote,B.E. Computer Science,2012-01-31,2016-03-29,N,Joining

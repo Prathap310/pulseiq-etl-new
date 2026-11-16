@@ -56,7 +56,11 @@ def connect():
 
 
 def load_table(cur, table, primary_key):
-    path = SOURCE / f"{table}.csv"
+    path = (
+        ROOT / "Data" / "Clean" / "fact_task.csv"
+        if table == "fact_task"
+        else SOURCE / f"{table}.csv"
+    )
     if not path.is_file():
         raise FileNotFoundError(f"Required source file not found: {path}")
 
