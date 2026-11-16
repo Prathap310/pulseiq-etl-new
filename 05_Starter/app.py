@@ -1,4 +1,4 @@
-
+﻿
 import os
 from datetime import date
 
@@ -20,12 +20,22 @@ load_dotenv(os.path.join(PROJECT_DIR, ".env"))
 
 st.set_page_config(
     page_title="PulseIQ | Workforce Dashboard",
-    page_icon="📊",
+    page_icon="ðŸ“Š",
     layout="wide",
 )
 
 st.title("PulseIQ Workforce & Headcount Dashboard")
 st.caption("Task 5 | Workforce analytics | Governed PostgreSQL metrics")
+
+def get_setting(key, default=None):
+    try:
+        value = st.secrets.get(key)
+        if value not in (None, ""):
+            return str(value)
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
 
 @st.cache_resource
 def get_connection():
@@ -33,20 +43,24 @@ def get_connection():
         "PGHOST", "PGPORT", "PGDATABASE",
         "PGUSER", "PGPASSWORD", "PGSCHEMA",
     ]
-    missing = [key for key in required if not os.getenv(key)]
+    missing = [key for key in required if not get_setting(key)]
+
     if missing:
         raise ValueError(
-            "Missing database settings in .env: " + ", ".join(missing)
+            "Missing database settings in Streamlit Secrets or local .env: "
+            + ", ".join(missing)
         )
-    if os.getenv("PGSCHEMA") != "dw":
+
+    if get_setting("PGSCHEMA") != "dw":
         raise ValueError("PGSCHEMA must be dw.")
 
     return psycopg2.connect(
-        host=os.getenv("PGHOST"),
-        port=os.getenv("PGPORT"),
-        dbname=os.getenv("PGDATABASE"),
-        user=os.getenv("PGUSER"),
-        password=os.getenv("PGPASSWORD"),
+        host=get_setting("PGHOST"),
+        port=get_setting("PGPORT"),
+        dbname=get_setting("PGDATABASE"),
+        user=get_setting("PGUSER"),
+        password=get_setting("PGPASSWORD"),
+        sslmode=get_setting("PGSSLMODE", "prefer"),
         connect_timeout=10,
         options="-c default_transaction_read_only=on",
     )
@@ -93,21 +107,38 @@ def load_dimensions():
         FROM dw.dim_department
         ORDER BY department_name
     """)
-    employees = read_sql("""
-        SELECT department_id, work_location, work_mode, is_current
+
+    tier_counts = read_sql("""
+        SELECT
+            e.department_id,
+            COALESCE(l.city_tier, 'Unknown') AS city_tier,
+            COUNT(DISTINCT e.employee_id) AS employee_count
+        FROM dw.dim_employee e
+        LEFT JOIN dw.dim_location l
+            ON e.work_location = l.work_location
+        WHERE UPPER(TRIM(e.is_current)) IN ('Y', 'YES', 'TRUE', '1')
+        GROUP BY e.department_id, COALESCE(l.city_tier, 'Unknown')
+        HAVING COUNT(DISTINCT e.employee_id) >= 5
+    """)
+
+    mode_counts = read_sql("""
+        SELECT
+            department_id,
+            COALESCE(work_mode, 'Unknown') AS work_mode,
+            COUNT(DISTINCT employee_id) AS employee_count
         FROM dw.dim_employee
+        WHERE UPPER(TRIM(is_current)) IN ('Y', 'YES', 'TRUE', '1')
+        GROUP BY department_id, COALESCE(work_mode, 'Unknown')
+        HAVING COUNT(DISTINCT employee_id) >= 5
     """)
-    locations = read_sql("""
-        SELECT work_location, city_tier, tier_number
-        FROM dw.dim_location
-    """)
-    return departments, employees, locations
+
+    return departments, tier_counts, mode_counts
 
 try:
     headcount = load_headcount()
     hires = load_hires()
     exits = load_exits()
-    departments, employees, locations = load_dimensions()
+    departments, tier_counts, mode_counts = load_dimensions()
 except Exception as exc:
     st.error(
         "Could not load dashboard data. Check PostgreSQL availability, "
@@ -274,29 +305,17 @@ if not department_summary.empty:
 
 # ---------------- Chart 3: Location tier ----------------
 st.subheader("3. Workforce by Location Tier")
-current_employees = employees[
-    employees["is_current"].astype(str).str.upper().isin(["Y", "YES", "TRUE", "1"])
-].copy()
 
-current_employees = current_employees.merge(
+tier_filtered = tier_counts.merge(
     departments, on="department_id", how="left"
 )
-current_employees = current_employees[
-    current_employees["department_name"].isin(selected_departments)
+tier_filtered = tier_filtered[
+    tier_filtered["department_name"].isin(selected_departments)
 ]
-current_employees = current_employees.merge(
-    locations[["work_location", "city_tier"]].drop_duplicates(),
-    on="work_location",
-    how="left",
-)
-current_employees["city_tier"] = current_employees["city_tier"].fillna(
-    "Unknown"
-)
 
 tier_summary = (
-    current_employees.groupby("city_tier", as_index=False)
-    .size()
-    .rename(columns={"size": "employee_count"})
+    tier_filtered.groupby("city_tier", as_index=False)["employee_count"]
+    .sum()
     .sort_values("employee_count", ascending=False)
 )
 
@@ -306,26 +325,30 @@ if not tier_summary.empty:
         x="city_tier",
         y="employee_count",
         labels={"city_tier": "Location tier", "employee_count": "Employees"},
-        title="Current employee records by city tier",
+        title="Current employees by location tier",
     )
     st.plotly_chart(fig_tier, use_container_width=True)
     top_tier = tier_summary.iloc[0]
     st.info(
-        f"**Insight:** {top_tier['city_tier']} has the most current employee "
-        f"records ({int(top_tier['employee_count']):,}) in the selected departments."
+        f"**Insight:** {top_tier['city_tier']} has the most current employees "
+        f"({int(top_tier['employee_count']):,}) in the selected departments."
     )
 else:
-    st.warning("No current employee records match the selected departments.")
+    st.warning("No location-tier groups meet the minimum group size for the selected departments.")
 
 # ---------------- Chart 4: Work mode ----------------
 st.subheader("4. Workforce by Work Mode")
+
+mode_filtered = mode_counts.merge(
+    departments, on="department_id", how="left"
+)
+mode_filtered = mode_filtered[
+    mode_filtered["department_name"].isin(selected_departments)
+]
+
 mode_summary = (
-    current_employees.assign(
-        work_mode=current_employees["work_mode"].fillna("Unknown")
-    )
-    .groupby("work_mode", as_index=False)
-    .size()
-    .rename(columns={"size": "employee_count"})
+    mode_filtered.groupby("work_mode", as_index=False)["employee_count"]
+    .sum()
     .sort_values("employee_count", ascending=False)
 )
 
@@ -335,17 +358,17 @@ if not mode_summary.empty:
         names="work_mode",
         values="employee_count",
         hole=0.45,
-        title="Current employee records by work mode",
+        title="Current employees by work mode",
     )
     st.plotly_chart(fig_mode, use_container_width=True)
     top_mode = mode_summary.iloc[0]
     st.info(
         f"**Insight:** {top_mode['work_mode']} is the most common work mode, "
-        f"with {int(top_mode['employee_count']):,} current employee records "
+        f"with {int(top_mode['employee_count']):,} current employees "
         "in the selected departments."
     )
 else:
-    st.warning("No work-mode data is available for the selected departments.")
+    st.warning("No work-mode groups meet the minimum group size for the selected departments.")
 
 # ---------------- CEO questions ----------------
 st.subheader("Questions for the CEO")
@@ -359,8 +382,9 @@ st.markdown("""
 
 st.caption(
     "Data note: Headcount KPIs and trend charts use governed dw.m01_headcount. "
-    "Hires and exits use dw.m02_hires and dw.m03_exits. Workforce breakdowns "
-    "use the employee and location dimensions. Employee dimension counts "
-    "may reflect slowly changing dimension history; validate current-record "
-    "semantics before treating them as an authoritative headcount."
+    "Hires and exits use dw.m02_hires and dw.m03_exits. Location-tier and "
+    "work-mode breakdowns use current employee aggregates from PostgreSQL. "
+    "Department/category groups with fewer than 5 employees are suppressed. "
+    "No individual employee names or IDs are loaded into these charts."
 )
+
