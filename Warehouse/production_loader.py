@@ -77,6 +77,9 @@ def load_table(cur, table, primary_key):
             sql.SQL("CREATE TEMP TABLE stage_load (LIKE dw.{} INCLUDING DEFAULTS) ON COMMIT DROP")
             .format(sql.Identifier(table))
         )
+        # Allow YYYY-MM forecast training values to be copied before date conversion.
+        if table == "fact_forecast" and "trained_through" in headers:
+            cur.execute("ALTER TABLE stage_load ALTER COLUMN trained_through TYPE text")
 
         copy_sql = sql.SQL("COPY stage_load ({}) FROM STDIN WITH (FORMAT CSV, HEADER TRUE, NULL '')").format(
             sql.SQL(", ").join(map(sql.Identifier, headers))
@@ -98,9 +101,14 @@ def load_table(cur, table, primary_key):
             cur.execute("""
                 UPDATE stage_load
                 SET trained_through =
-                    (to_date(trained_through::text || '-01', 'YYYY-MM-DD')
-                     + INTERVAL '1 month - 1 day')::date
-                WHERE trained_through::text ~ '^\\d{4}-\\d{2}$'
+                    ((to_date(trained_through || '-01', 'YYYY-MM-DD')
+                      + INTERVAL '1 month - 1 day')::date)::text
+                WHERE trained_through ~ '^\\d{4}-\\d{2}$'
+            """)
+            cur.execute("""
+                ALTER TABLE stage_load
+                ALTER COLUMN trained_through TYPE date
+                USING trained_through::date
             """)
 
         columns = sql.SQL(", ").join(map(sql.Identifier, headers))
