@@ -1,4 +1,4 @@
-﻿
+
 import os
 from datetime import date
 
@@ -37,12 +37,12 @@ def get_setting(key, default=None):
     return os.getenv(key, default)
 
 
-@st.cache_resource
 def get_connection():
     required = [
         "PGHOST", "PGPORT", "PGDATABASE",
         "PGUSER", "PGPASSWORD", "PGSCHEMA",
     ]
+
     missing = [key for key in required if not get_setting(key)]
 
     if missing:
@@ -60,20 +60,27 @@ def get_connection():
         dbname=get_setting("PGDATABASE"),
         user=get_setting("PGUSER"),
         password=get_setting("PGPASSWORD"),
-        sslmode=get_setting("PGSSLMODE", "prefer"),
+        sslmode=get_setting("PGSSLMODE", "require"),
         connect_timeout=10,
         options="-c default_transaction_read_only=on",
     )
 
+
 def read_sql(query, params=None):
     conn = get_connection()
-    with conn.cursor() as cur:
-        cur.execute("SET TRANSACTION READ ONLY")
-        cur.execute(query, params or ())
-        columns = [col[0] for col in cur.description]
-        rows = cur.fetchall()
-    conn.rollback()
-    return pd.DataFrame(rows, columns=columns)
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SET TRANSACTION READ ONLY")
+            cur.execute(query, params or ())
+            columns = [col[0] for col in cur.description]
+            rows = cur.fetchall()
+
+        conn.rollback()
+        return pd.DataFrame(rows, columns=columns)
+
+    finally:
+        conn.close()
 
 @st.cache_data(ttl=300)
 def load_headcount():
