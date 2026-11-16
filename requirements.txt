@@ -6,3 +6,5 @@ psycopg2-binary==2.9.13
 python-dotenv==1.2.4
 openpyxl==3.1.5
 reportlab==5.0.1
+
+streamlit-autorefresh==1.0.1
