@@ -127,21 +127,7 @@ CHECKS = [
          AND COALESCE(a.valid_to,DATE '9999-12-31') >= b.valid_from
     """),
     ("DQ-C13", "Pipeline freshness", "Logs/pipeline_runs.csv", "critical", None),
-    ("DQ-C14", "Minimum group size", "metric_dictionary.csv + dw.fact_payroll", "critical", """
-        WITH groups AS (
-            SELECT
-                department_id,
-                DATE_TRUNC('month', period_end_date)::date AS period,
-                COUNT(DISTINCT employee_id) AS group_size
-            FROM dw.fact_payroll
-            WHERE department_id IS NOT NULL
-              AND period_end_date IS NOT NULL
-            GROUP BY department_id, DATE_TRUNC('month', period_end_date)
-        )
-        SELECT department_id, period, group_size
-        FROM groups
-        WHERE group_size < 5
-    """),
+    ("DQ-C14", "Minimum group size", "metric_dictionary.csv + published metric views", "critical", None),
 ]
 
 
@@ -179,176 +165,42 @@ def pipeline_bad_rows():
 
 
 def dq_c14_bad_groups(cur, thresholds):
-    """Count undersized groups using each metric's relevant population."""
-    queries = {
-        # Headcount at month end.
-        "M01": """
-            SELECT COUNT(*) FROM dw.fact_headcount_monthly
-            WHERE department_id IS NOT NULL
-              AND month_start_date IS NOT NULL
-              AND COALESCE(headcount_end, 0) > 0
-              AND headcount_end < %s
-        """,
-        # People hired during the month.
-        "M02": """
-            SELECT COUNT(*) FROM dw.fact_headcount_monthly
-            WHERE department_id IS NOT NULL
-              AND month_start_date IS NOT NULL
-              AND COALESCE(hires, 0) > 0
-              AND hires < %s
-        """,
-        # People exiting during the month.
-        "M03": """
-            SELECT COUNT(*) FROM dw.fact_headcount_monthly
-            WHERE department_id IS NOT NULL
-              AND month_start_date IS NOT NULL
-              AND COALESCE(exits, 0) > 0
-              AND exits < %s
-        """,
-        # Monthly attrition denominator: starting headcount.
-        "M04": """
-            SELECT COUNT(*) FROM dw.fact_headcount_monthly
-            WHERE department_id IS NOT NULL
-              AND month_start_date IS NOT NULL
-              AND COALESCE(headcount_start, 0) > 0
-              AND headcount_start < %s
-        """,
-        # Rolling 12-month attrition denominators.
-        "M05": """
-            WITH rolling AS (
-                SELECT department_id, month_start_date,
-                       AVG(headcount_end) OVER (
-                           PARTITION BY department_id
-                           ORDER BY month_start_date
-                           ROWS BETWEEN 11 PRECEDING AND CURRENT ROW
-                       ) AS avg_headcount,
-                       COUNT(*) OVER (
-                           PARTITION BY department_id
-                           ORDER BY month_start_date
-                           ROWS BETWEEN 11 PRECEDING AND CURRENT ROW
-                       ) AS months_in_window
-                FROM dw.fact_headcount_monthly
-                WHERE department_id IS NOT NULL
-                  AND month_start_date IS NOT NULL
-            )
-            SELECT COUNT(*) FROM rolling
-            WHERE months_in_window = 12
-              AND COALESCE(avg_headcount, 0) > 0
-              AND avg_headcount < %s
-        """,
-        "M06": """
-            WITH rolling AS (
-                SELECT department_id, month_start_date,
-                       AVG(headcount_end) OVER (
-                           PARTITION BY department_id
-                           ORDER BY month_start_date
-                           ROWS BETWEEN 11 PRECEDING AND CURRENT ROW
-                       ) AS avg_headcount,
-                       COUNT(*) OVER (
-                           PARTITION BY department_id
-                           ORDER BY month_start_date
-                           ROWS BETWEEN 11 PRECEDING AND CURRENT ROW
-                       ) AS months_in_window
-                FROM dw.fact_headcount_monthly
-                WHERE department_id IS NOT NULL
-                  AND month_start_date IS NOT NULL
-            )
-            SELECT COUNT(*) FROM rolling
-            WHERE months_in_window = 12
-              AND COALESCE(avg_headcount, 0) > 0
-              AND avg_headcount < %s
-        """,
-        "M10": """
-            SELECT COUNT(*) FROM (
-                SELECT department_id, DATE_TRUNC('month', period_end_date)
-                FROM dw.fact_payroll
-                WHERE department_id IS NOT NULL AND period_end_date IS NOT NULL
-                GROUP BY department_id, DATE_TRUNC('month', period_end_date)
-                HAVING COUNT(DISTINCT employee_id) < %s
-            ) groups_below_minimum
-        """,
-        "M11": """
-            SELECT COUNT(*) FROM (
-                SELECT department_id, DATE_TRUNC('month', period_end_date)
-                FROM dw.fact_payroll
-                WHERE department_id IS NOT NULL AND period_end_date IS NOT NULL
-                GROUP BY department_id, DATE_TRUNC('month', period_end_date)
-                HAVING COUNT(DISTINCT employee_id) < %s
-            ) groups_below_minimum
-        """,
-        "M12": """
-            SELECT COUNT(*) FROM (
-                SELECT department_id, DATE_TRUNC('month', period_end_date)
-                FROM dw.fact_payroll
-                WHERE department_id IS NOT NULL AND period_end_date IS NOT NULL
-                GROUP BY department_id, DATE_TRUNC('month', period_end_date)
-                HAVING COUNT(DISTINCT employee_id) < %s
-            ) groups_below_minimum
-        """,
-        "M13": """
-            SELECT COUNT(*) FROM (
-                SELECT department_id, DATE_TRUNC('month', period_end_date)
-                FROM dw.fact_attendance_monthly
-                WHERE department_id IS NOT NULL AND period_end_date IS NOT NULL
-                GROUP BY department_id, DATE_TRUNC('month', period_end_date)
-                HAVING COUNT(DISTINCT employee_id) < %s
-            ) groups_below_minimum
-        """,
-        "M14": """
-            SELECT COUNT(*) FROM (
-                SELECT department_id, DATE_TRUNC('month', period_end_date)
-                FROM dw.fact_attendance_monthly
-                WHERE department_id IS NOT NULL AND period_end_date IS NOT NULL
-                GROUP BY department_id, DATE_TRUNC('month', period_end_date)
-                HAVING COUNT(DISTINCT employee_id) < %s
-            ) groups_below_minimum
-        """,
-        "M22": """
-            SELECT COUNT(*) FROM (
-                SELECT team_id, sprint_id
-                FROM dw.fact_task
-                WHERE team_id IS NOT NULL AND sprint_id IS NOT NULL
-                  AND LOWER(COALESCE(status, '')) <> 'cancelled'
-                GROUP BY team_id, sprint_id
-                HAVING COUNT(*) < %s
-            ) groups_below_minimum
-        """,
-        "M23": """
-            SELECT COUNT(*) FROM (
-                SELECT team_id, sprint_id
-                FROM dw.fact_task
-                WHERE team_id IS NOT NULL AND sprint_id IS NOT NULL
-                  AND LOWER(COALESCE(status, '')) = 'done'
-                GROUP BY team_id, sprint_id
-                HAVING COUNT(*) < %s
-            ) groups_below_minimum
-        """,
-        "M25": """
-            SELECT COUNT(*) FROM (
-                SELECT team_id, sprint_id
-                FROM dw.fact_task
-                WHERE team_id IS NOT NULL AND sprint_id IS NOT NULL
-                  AND started_date IS NOT NULL AND completed_date IS NOT NULL
-                GROUP BY team_id, sprint_id
-                HAVING COUNT(*) < %s
-            ) groups_below_minimum
-        """,
-        "M27": """
-            SELECT COUNT(*) FROM (
-                SELECT department_id
-                FROM dw.fact_attrition_risk
-                WHERE department_id IS NOT NULL
-                GROUP BY department_id
-                HAVING COUNT(DISTINCT employee_id) < %s
-            ) groups_below_minimum
-        """,
+    """Detect published metric values exposed below privacy thresholds."""
+
+    exposure_queries = {
+        "M01": ("dw.m01_headcount", "headcount"),
+        "M02": ("dw.m02_hires", "hires"),
+        "M03": ("dw.m03_exits", "exits"),
+        "M04": ("dw.m04_monthly_attrition", "attrition_rate_pct"),
+        "M05": ("dw.m05_rolling_12m_attrition", "rolling_12m_attrition_pct"),
+        "M06": ("dw.m06_voluntary_attrition", "voluntary_attrition_rate_pct"),
+        "M10": ("dw.m10_cost_per_head", "cost_per_head"),
+        "M11": ("dw.m11_overtime_share", "overtime_share_pct"),
+        "M12": ("dw.m12_variable_pay_share", "variable_pay_share_pct"),
+        "M13": ("dw.m13_attendance_rate", "attendance_rate"),
+        "M14": ("dw.m14_late_arrival_rate", "late_arrival_rate_pct"),
+        "M22": ("dw.m22_task_completion_rate", "task_completion_rate_pct"),
+        "M23": ("dw.m23_on_time_delivery_rate", "on_time_delivery_rate_pct"),
+        "M25": ("dw.m25_average_cycle_time", "average_cycle_time_days"),
+        "M27": ("dw.m27_high_risk_share", "high_risk_share_pct"),
     }
 
+    missing = set(exposure_queries) - set(thresholds)
+    if missing:
+        raise RuntimeError(
+            "Metric dictionary is missing thresholds: "
+            + ", ".join(sorted(missing))
+        )
+
     counts = {}
-    for metric_id, query in queries.items():
-        if metric_id not in thresholds:
-            continue
-        cur.execute(query, (thresholds[metric_id],))
+    for metric_id, (view_name, value_column) in exposure_queries.items():
+        query = f"""
+            SELECT COUNT(*)
+            FROM {view_name}
+            WHERE COALESCE(privacy_threshold_met, FALSE) = FALSE
+              AND {value_column} IS NOT NULL
+        """
+        cur.execute(query)
         counts[metric_id] = cur.fetchone()[0]
 
     total = sum(counts.values())
@@ -356,12 +208,13 @@ def dq_c14_bad_groups(cur, thresholds):
         f"{metric_id}={count}" for metric_id, count in counts.items()
     )
     details = (
-        f"severity=critical; metric_group_violations={total}; "
+        f"severity=critical; published_view_exposures={total}; "
         f"by_metric=[{breakdown}]; "
-        "M07/M08/M09/M15 excluded: employee-level grain requires a "
-        "separate exposure-policy decision."
+        "M07/M08/M09/M15 excluded pending a separate "
+        "employee-level exposure-policy decision."
     )
     return total, details
+
 
 
 def main():

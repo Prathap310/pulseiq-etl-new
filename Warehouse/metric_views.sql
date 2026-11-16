@@ -351,16 +351,15 @@ WHERE i.due_date < l.report_date
 
 CREATE OR REPLACE VIEW dw.m22_task_completion_rate AS
 SELECT
+    team_id,
+    sprint_id,
     CASE
         WHEN COUNT(*) FILTER (
             WHERE status <> 'Cancelled'
         ) >= 5
         THEN ROUND(
             100.0 * COUNT(*) FILTER (WHERE status = 'Done') /
-            NULLIF(
-                COUNT(*) FILTER (WHERE status <> 'Cancelled'),
-                0
-            ),
+            NULLIF(COUNT(*) FILTER (WHERE status <> 'Cancelled'), 0),
             2
         )
         ELSE NULL
@@ -368,10 +367,16 @@ SELECT
     COUNT(*) FILTER (
         WHERE status <> 'Cancelled'
     ) >= 5 AS privacy_threshold_met
-FROM dw.fact_task;
+FROM dw.fact_task
+WHERE team_id IS NOT NULL
+  AND sprint_id IS NOT NULL
+GROUP BY team_id, sprint_id;
+
 
 CREATE OR REPLACE VIEW dw.m23_on_time_delivery_rate AS
 SELECT
+    team_id,
+    sprint_id,
     CASE
         WHEN COUNT(*) FILTER (WHERE status = 'Done') >= 5
         THEN ROUND(
@@ -386,7 +391,11 @@ SELECT
     END AS on_time_delivery_rate_pct,
     COUNT(*) FILTER (WHERE status = 'Done') >= 5
         AS privacy_threshold_met
-FROM dw.fact_task;
+FROM dw.fact_task
+WHERE team_id IS NOT NULL
+  AND sprint_id IS NOT NULL
+GROUP BY team_id, sprint_id;
+
 
 CREATE OR REPLACE VIEW dw.m24_velocity AS
 SELECT
@@ -425,7 +434,10 @@ SELECT
           AND completed_date IS NOT NULL
     ) >= 5 AS privacy_threshold_met
 FROM dw.fact_task
+WHERE team_id IS NOT NULL
+  AND sprint_id IS NOT NULL
 GROUP BY team_id, sprint_id;
+
 
 CREATE OR REPLACE VIEW dw.m26_anomaly_flag_rate AS
 SELECT
@@ -439,6 +451,7 @@ SELECT
     COUNT(*) AS records_scored
 FROM dw.fact_anomaly
 GROUP BY source_dataset, period;
+
 
 CREATE OR REPLACE VIEW dw.m27_high_risk_share AS
 SELECT
@@ -455,6 +468,11 @@ SELECT
     END AS high_risk_share_pct,
     COUNT(*) >= 10 AS privacy_threshold_met
 FROM dw.fact_attrition_risk
+WHERE department_id IS NOT NULL
+  AND as_of_date = (
+      SELECT MAX(as_of_date)
+      FROM dw.fact_attrition_risk
+  )
 GROUP BY department_id, as_of_date;
 
 -- Forecast data is company-wide (department_id = 'ALL').

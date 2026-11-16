@@ -49,23 +49,28 @@ class TestDQRunner(unittest.TestCase):
             with patch.object(dq, "ROOT", Path(temp_dir)):
                 self.assertEqual(dq.pipeline_bad_rows(), 1)
 
-    def test_c14_counts_mocked_metric_group_violations(self):
+    def test_c14_checks_published_view_exposures(self):
         cursor = MagicMock()
         cursor.fetchone.return_value = (1,)
-        thresholds = {
-            metric_id: 5
-            for metric_id in [
-                "M01", "M02", "M03", "M04", "M05", "M06",
-                "M10", "M11", "M12", "M13", "M14", "M22",
-                "M23", "M25", "M27"
-            ]
-        }
+
+        metric_ids = [
+            "M01", "M02", "M03", "M04", "M05", "M06",
+            "M10", "M11", "M12", "M13", "M14", "M22",
+            "M23", "M25", "M27"
+        ]
+        thresholds = {metric_id: 5 for metric_id in metric_ids}
 
         total, details = dq.dq_c14_bad_groups(cursor, thresholds)
 
-        self.assertEqual(total, len(thresholds))
-        self.assertEqual(cursor.execute.call_count, len(thresholds))
+        self.assertEqual(total, 15)
+        self.assertEqual(cursor.execute.call_count, 15)
+        self.assertIn("published_view_exposures=15", details)
         self.assertIn("M07/M08/M09/M15 excluded", details)
+
+        for call in cursor.execute.call_args_list:
+            query = call.args[0]
+            self.assertIn("privacy_threshold_met", query)
+            self.assertIn("IS NOT NULL", query)
 
 
     def test_failed_check_rolls_back_to_savepoint_and_continues(self):
@@ -84,7 +89,15 @@ class TestDQRunner(unittest.TestCase):
 
         with patch.object(dq, "connect_db", return_value=connection), \
              patch.object(dq, "pipeline_bad_rows", return_value=0), \
-             patch.object(dq, "load_metric_thresholds", return_value={}):
+             patch.object(
+                 dq,
+                 "load_metric_thresholds",
+                 return_value=dict.fromkeys([
+                     "M01", "M02", "M03", "M04", "M05", "M06",
+                     "M10", "M11", "M12", "M13", "M14", "M22",
+                     "M23", "M25", "M27"
+                 ], 5)
+             ):
 
             result = dq.main()
 
