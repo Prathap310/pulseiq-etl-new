@@ -81,6 +81,10 @@ def load_table(cur, table, primary_key):
         if table == "fact_forecast" and "trained_through" in headers:
             cur.execute("ALTER TABLE stage_load ALTER COLUMN trained_through TYPE text")
 
+        # Stage decimal-formatted whole-day values as text before integer conversion.
+        if table == "fact_invoice" and "days_to_pay" in headers:
+            cur.execute("ALTER TABLE stage_load ALTER COLUMN days_to_pay TYPE text")
+
         copy_sql = sql.SQL("COPY stage_load ({}) FROM STDIN WITH (FORMAT CSV, HEADER TRUE, NULL '')").format(
             sql.SQL(", ").join(map(sql.Identifier, headers))
         )
@@ -94,6 +98,19 @@ def load_table(cur, table, primary_key):
                 UPDATE stage_load
                 SET parent_code = regexp_replace(parent_code::text, '\\.0$', '')
                 WHERE parent_code::text ~ '^[0-9]+\\.0$'
+            """)
+
+        # Normalize whole-number day values such as 57.0 before integer conversion.
+        if table == "fact_invoice" and "days_to_pay" in headers:
+            cur.execute("""
+                UPDATE stage_load
+                SET days_to_pay = regexp_replace(days_to_pay, '\\.0+$', '')
+                WHERE days_to_pay ~ '^\\d+\\.0+$'
+            """)
+            cur.execute("""
+                ALTER TABLE stage_load
+                ALTER COLUMN days_to_pay TYPE integer
+                USING days_to_pay::integer
             """)
 
         # Convert forecast training month (YYYY-MM) to a valid month-end date.
