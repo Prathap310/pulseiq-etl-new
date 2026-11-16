@@ -93,6 +93,16 @@ def load_table(cur, table, primary_key):
                 WHERE parent_code::text ~ '^[0-9]+\\.0$'
             """)
 
+        # Convert forecast training month (YYYY-MM) to a valid month-end date.
+        if table == "fact_forecast" and "trained_through" in headers:
+            cur.execute("""
+                UPDATE stage_load
+                SET trained_through =
+                    (to_date(trained_through::text || '-01', 'YYYY-MM-DD')
+                     + INTERVAL '1 month - 1 day')::date
+                WHERE trained_through::text ~ '^\\d{4}-\\d{2}$'
+            """)
+
         columns = sql.SQL(", ").join(map(sql.Identifier, headers))
         keys = sql.SQL(", ").join(map(sql.Identifier, primary_key))
         non_keys = [column for column in headers if column not in primary_key]
