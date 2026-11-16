@@ -378,6 +378,7 @@ def main():
 
                 for check_id, name, table_name, severity, query in CHECKS:
                     check_details = None
+                    cur.execute("SAVEPOINT dq_check")
                     try:
                         if check_id == "DQ-C13":
                             bad_count = pipeline_bad_rows()
@@ -391,7 +392,7 @@ def main():
                         status = "PASS" if bad_count == 0 else "FAIL"
                         details = check_details if check_id == "DQ-C14" and check_details else f"severity={severity}; bad_rows={bad_count}"
                     except Exception as exc:
-                        conn.rollback()
+                        cur.execute("ROLLBACK TO SAVEPOINT dq_check")
                         status = "ERROR"
                         bad_count = 0
                         details = f"severity={severity}; {type(exc).__name__}: {exc}"
@@ -403,6 +404,7 @@ def main():
                             (check_id, check_name, table_name, bad_row_count, status, details)
                         VALUES (%s,%s,%s,%s,%s,%s)
                     """, (check_id, name, table_name, bad_count, status, details))
+                    cur.execute("RELEASE SAVEPOINT dq_check")
 
         print("\nDATA QUALITY SUMMARY")
         print("-" * 78)
