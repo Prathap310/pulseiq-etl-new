@@ -1,4 +1,4 @@
-﻿
+
 import os
 from datetime import date
 
@@ -6,7 +6,6 @@ import pandas as pd
 import plotly.express as px
 import psycopg2
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 from dotenv import load_dotenv
 
 # ---------------------------------------------------------
@@ -21,11 +20,9 @@ load_dotenv(os.path.join(PROJECT_DIR, ".env"))
 
 st.set_page_config(
     page_title="PulseIQ | Workforce Dashboard",
-    page_icon="Ã°Å¸â€œÅ ",
+    page_icon="ðŸ“Š",
     layout="wide",
 )
-
-st_autorefresh(interval=300000, limit=None, key="pulseiq_auto_refresh")
 
 st.title("PulseIQ Workforce & Headcount Dashboard")
 st.caption("Task 5 | Workforce analytics | Governed PostgreSQL metrics")
@@ -397,5 +394,4 @@ st.caption(
     "Department/category groups with fewer than 5 employees are suppressed. "
     "No individual employee names or IDs are loaded into these charts."
 )
-
 
