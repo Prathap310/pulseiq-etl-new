@@ -1,5 +1,6 @@
 
 import os
+import sys
 from datetime import date
 
 import pandas as pd
@@ -16,6 +17,10 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(BASE_DIR)
+sys.path.insert(0, PROJECT_DIR)
+
+from API.services.freshness_service import get_freshness
+
 load_dotenv(os.path.join(PROJECT_DIR, ".env"))
 
 st.set_page_config(
@@ -26,6 +31,29 @@ st.set_page_config(
 
 st.title("PulseIQ Workforce & Headcount Dashboard")
 st.caption("Task 5 | Workforce analytics | Governed PostgreSQL metrics")
+
+# ---------------- Data freshness (Task 19) ----------------
+try:
+    freshness = get_freshness()
+    freshness_status = freshness.get("freshness_status", "UNKNOWN").upper()
+    freshness_statement = freshness.get(
+        "freshness_statement",
+        "Pipeline refresh history is unavailable.",
+    )
+
+    if freshness_status == "FRESH":
+        st.success(f"Data freshness: {freshness_statement}")
+    elif freshness_status in ("STALE", "WARNING"):
+        st.warning(f"Data freshness ({freshness_status}): {freshness_statement}")
+    else:
+        st.info(f"Data freshness (UNKNOWN): {freshness_statement}")
+
+    last_successful_refresh = freshness.get("last_successful_refresh")
+    if last_successful_refresh:
+        st.caption(f"Last successful data refresh (UTC): {last_successful_refresh}")
+except Exception as freshness_error:
+    st.info("Data freshness information is temporarily unavailable.")
+    st.caption(f"Freshness check detail: {freshness_error}")
 
 def get_setting(key, default=None):
     try:
