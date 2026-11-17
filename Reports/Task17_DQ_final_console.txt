@@ -1,5 +1,5 @@
-PulseIQ Data Quality Gatekeeper
-Started UTC: 2026-11-16T18:33:30+00:00
+﻿PulseIQ Data Quality Gatekeeper
+Started UTC: 2026-11-17T03:50:02+00:00
 
 DATA QUALITY SUMMARY
 ------------------------------------------------------------------------------
@@ -13,7 +13,7 @@ DQ-C07 | PASS  | bad rows:    0 | Invoice arithmetic
 DQ-C08 | PASS  | bad rows:    0 | Expense arithmetic
 DQ-C09 | PASS  | bad rows:    0 | Task dates sensible
 DQ-C10 | PASS  | bad rows:    0 | Leave dates sensible
-DQ-C11 | FAIL  | bad rows:  835 | AI feeds fresh
+DQ-C11 | FAIL  | bad rows:  405 | AI feeds fresh
 DQ-C12 | PASS  | bad rows:    0 | Dimension history does not overlap
 DQ-C13 | PASS  | bad rows:    0 | Pipeline freshness
 DQ-C14 | PASS  | bad rows:    0 | Minimum group size

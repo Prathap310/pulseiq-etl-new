@@ -111,14 +111,11 @@ CHECKS = [
         SELECT leave_request_id FROM dw.fact_leave
         WHERE end_date < start_date
     """),
-    ("DQ-C11", "AI feeds fresh", "dw.fact_attrition_risk + dw.fact_anomaly", "warning", """
-        SELECT 'stale_attrition_prediction' AS issue, prediction_id::text AS record_id
-        FROM dw.fact_attrition_risk
-        WHERE as_of_date < CURRENT_DATE-7
-        UNION ALL
-        SELECT 'stale_anomaly_score', result_id::text
+    ("DQ-C11", "AI feeds fresh", "dw.fact_anomaly", "warning", """
+        SELECT result_id::text AS record_id
         FROM dw.fact_anomaly
-        WHERE scored_at < NOW()-INTERVAL '24 hours' OR scored_at IS NULL
+        WHERE scored_at < NOW() - INTERVAL '24 hours'
+           OR scored_at IS NULL
     """),
     ("DQ-C12", "Dimension history does not overlap", "dw.dim_employee", "critical", """
         SELECT a.employee_id

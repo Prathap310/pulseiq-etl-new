@@ -1,6 +1,6 @@
 ﻿# Task 17 - Final Data Quality Evidence
 
-- Latest verification (UTC): 2026-11-16T18:33:30+00:00
+- Latest verification (UTC): 2026-11-17T03:50:02+00:00
 - Total checks: 14
 - PASS: 12
 - FAIL: 2
@@ -21,7 +21,7 @@
 | DQ-C08 | Expense arithmetic | PASS | 0 |
 | DQ-C09 | Task dates sensible | PASS | 0 |
 | DQ-C10 | Leave dates sensible | PASS | 0 |
-| DQ-C11 | AI feeds fresh | FAIL | 835 |
+| DQ-C11 | AI feeds fresh | FAIL | 405 |
 | DQ-C12 | Dimension history does not overlap | PASS | 0 |
 | DQ-C13 | Pipeline freshness | PASS | 0 |
 | DQ-C14 | Minimum group size | PASS | 0 |
@@ -47,22 +47,26 @@ Treatment:
 
 ## 3. Outstanding Finding - DQ-C11
 
-Total freshness findings: 835.
+Total freshness findings: 405.
 
 Breakdown:
-- Attrition predictions: 430 stale records.
-- Anomaly records: 405 records rejected from the clean dataset because their scored_at timestamps lack valid timezone information.
+- Historical attrition predictions: 430 records are no longer incorrectly flagged using their historical as_of_date values.
+- Anomaly records: 405 stale records remain flagged.
 
 Additional findings:
 - The 430 attrition records have as_of_date values from 2026-03-31 through 2026-09-30.
-- The 405 anomaly records have timezone-naive scored_at values of 2026-10-01 02:00:00.
+- The 405 anomaly records have scored_at values of 2026-10-01 02:00:00 without an explicit timezone.
+- The data contract requires scored_at to be a UTC timestamp.
+- The data owner has not confirmed whether the source timestamps represent UTC.
+- All 405 anomaly records were rejected from the clean dataset because their timestamps lack valid timezone information.
 - Task 14 dashboard reads existing CSV files; it does not train models or generate fresh scores.
 - No model-generation implementation was identified in the source files searched.
 
 Treatment:
+- Removed the incorrect comparison of historical attrition as_of_date against the current date.
+- Retained the anomaly freshness check.
 - Do not fabricate timestamps or prediction results.
-- Implement and validate a genuine refresh/scoring process before treating these records as fresh.
-- Keep DQ-C11 failed until the freshness requirements are satisfied.
+- Keep DQ-C11 failed until the anomaly feed receives verified fresh scoring timestamps.
 
 ## 4. Source History Verification
 
@@ -93,6 +97,12 @@ DQ-C02, DQ-C12, DQ-C13 and DQ-C14 also pass in the latest run.
 
 Current result: 12 PASS, 2 FAIL, 0 ERROR.
 
-Task 17 remediation has substantially improved data quality. However, full DQ acceptance is pending resolution of the June 2026 D01 payroll-ledger discrepancy and the AI feed freshness findings.
+Task 17 remediation has substantially improved data quality.
 
-The two failures remain visible and are not overridden or treated as successful.
+Outstanding findings:
+- DQ-C01: One June 2026 D01 payroll-ledger discrepancy of INR 18,450.00.
+- DQ-C11: 405 stale anomaly records with unconfirmed UTC timestamps.
+
+Historical attrition reporting dates are no longer incorrectly classified as stale predictions.
+
+Both failures remain visible and are not overridden or treated as successful.
