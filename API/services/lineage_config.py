@@ -1,0 +1,42 @@
+﻿LINEAGE = {
+    "M01": {
+        "metric": "Headcount",
+        "raw_source": "03_Data/csv/fact_headcount_monthly.csv",
+        "etl_process": "Warehouse/production_loader.py",
+        "warehouse_table": "dw.fact_headcount_monthly",
+        "metric_view": "dw.m01_headcount",
+        "dashboard": "PulseIQ KPI Dashboard",
+    },
+    "M07": {
+        "metric": "Gross Pay",
+        "raw_source": "03_Data/csv/fact_payroll.csv",
+        "etl_process": "Warehouse/production_loader.py",
+        "warehouse_table": "dw.fact_payroll",
+        "metric_view": "dw.m07_gross_pay",
+        "dashboard": "PulseIQ KPI Dashboard",
+    },
+    "M13": {
+        "metric": "Attendance Rate",
+        "raw_source": "03_Data/csv/fact_attendance_monthly.csv",
+        "etl_process": "Warehouse/production_loader.py",
+        "warehouse_table": "dw.fact_attendance_monthly",
+        "metric_view": "dw.m13_attendance_rate",
+        "dashboard": "PulseIQ KPI Dashboard",
+    },
+    "M22": {
+        "metric": "Task Completion Rate",
+        "raw_source": "Data/Clean/fact_task.csv",
+        "etl_process": "Warehouse/production_loader.py",
+        "warehouse_table": "dw.fact_task",
+        "metric_view": "dw.m22_task_completion_rate",
+        "dashboard": "PulseIQ KPI Dashboard",
+    },
+    "M27": {
+        "metric": "High-Risk Share",
+        "raw_source": "03_Data/csv/fact_attrition_risk.csv",
+        "etl_process": "Warehouse/production_loader.py",
+        "warehouse_table": "dw.fact_attrition_risk",
+        "metric_view": "dw.m27_high_risk_share",
+        "dashboard": "PulseIQ KPI Dashboard",
+    },
+}
