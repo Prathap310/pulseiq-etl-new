@@ -27,13 +27,20 @@ class AuthorizationError(PermissionError):
 
 
 def _get_secret() -> str:
-    """Load the JWT signing secret from the environment."""
+    """Load JWT secret from environment or Streamlit Cloud secrets."""
     secret = os.getenv("JWT_SECRET")
+
+    if not secret:
+        try:
+            import streamlit as st
+            secret = st.secrets.get("JWT_SECRET")
+        except Exception:
+            secret = None
 
     if not secret:
         raise AuthenticationError("JWT_SECRET is not configured.")
 
-    return secret
+    return str(secret)
 
 
 def load_demo_users() -> dict[str, str]:
