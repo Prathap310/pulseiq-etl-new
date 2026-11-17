@@ -11,3 +11,5 @@ psycopg2-binary>=2.9
 python-dotenv>=1.0
 
 streamlit-autorefresh==1.0.1
+
+PyJWT>=2.10,<3
