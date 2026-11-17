@@ -11,7 +11,7 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_DIR))
 load_dotenv(PROJECT_DIR / ".env")
 
-from Src.kpi_auth import AuthenticationError, verify_access_token
+from Src.kpi_session import get_authenticated_session
 from Src.kpi_explorer import (
     METRIC_NAMES,
     ROLE_LEVELS,
@@ -124,23 +124,7 @@ def load_sprints():
 # Authentication
 # ---------------------------------------------------------
 
-st.subheader("Authentication")
-
-token = st.text_input(
-    "Paste your signed JWT access token",
-    type="password",
-    help="Use a token issued for an approved account in demo_users.csv.",
-)
-
-if not token:
-    st.info("Authenticate with your approved demo account to continue.")
-    st.stop()
-
-try:
-    claims = verify_access_token(token.strip())
-except AuthenticationError:
-    st.error("Authentication failed. Check the token and try again.")
-    st.stop()
+claims, token = get_authenticated_session("kpi_explorer")
 
 role = claims["role"]
 employee_id = claims["employee_id"]

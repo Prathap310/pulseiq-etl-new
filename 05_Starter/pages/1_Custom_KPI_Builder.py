@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 from pathlib import Path
 
@@ -12,12 +12,8 @@ sys.path.insert(0, str(PROJECT_DIR))
 load_dotenv(PROJECT_DIR / ".env")
 
 from Src.kpi_builder import EXAMPLES, build_query
-from Src.kpi_auth import (
-    AuthenticationError,
-    AuthorizationError,
-    verify_access_token,
-    require_admin,
-)
+from Src.kpi_auth import AuthorizationError, require_admin
+from Src.kpi_session import get_authenticated_session
 from Src.kpi_repository import save_draft, load_kpis, approve_kpi
 
 
@@ -122,28 +118,7 @@ def repository_action(action, *args):
 # Authentication
 # ---------------------------------------------------------
 
-st.subheader("Authentication")
-
-token = st.text_input(
-    "Paste your signed JWT access token",
-    type="password",
-    help="The token must be signed using the configured JWT_SECRET.",
-)
-
-claims = None
-
-if token:
-    try:
-        claims = verify_access_token(token.strip())
-        st.success(
-            f"Authenticated: {claims['sub']} | Role: {claims['role']}"
-        )
-    except AuthenticationError:
-        st.error("Authentication failed. Provide a valid access token.")
-
-if claims is None:
-    st.info("Authenticate to access governed KPI management.")
-    st.stop()
+claims, token = get_authenticated_session("custom_kpi_builder")
 
 is_admin = claims["role"] == "ADMIN"
 
