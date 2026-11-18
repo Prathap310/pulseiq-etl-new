@@ -1,13 +1,13 @@
-"""Secure execution service for the Task 18 KPI Explorer."""
+﻿"""Secure execution service for the Task 18 KPI Explorer."""
 
-from Src.kpi_auth import verify_access_token
-from Src.kpi_explorer import (
+from Source.kpi_auth import verify_access_token
+from Source.kpi_explorer import (
     ExplorerAuthorizationError,
     get_manager_team_scope,
     suppress_small_groups,
     verify_employee_identity,
 )
-from Src.kpi_explorer_sql import (
+from Source.kpi_explorer_sql import (
     build_headcount_query,
     build_payroll_attendance_query,
     build_task_query,
@@ -126,3 +126,4 @@ def execute_kpi_query(
         output.append(clean_row)
 
     return output
+

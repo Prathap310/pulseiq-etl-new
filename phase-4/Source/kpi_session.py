@@ -1,6 +1,6 @@
 ﻿import streamlit as st
 
-from Src.kpi_auth import AuthenticationError, verify_access_token
+from Source.kpi_auth import AuthenticationError, verify_access_token
 
 
 SESSION_TOKEN_KEY = "pulseiq_authenticated_token"
@@ -46,3 +46,4 @@ def get_authenticated_session(page_name: str):
     )
 
     return claims, token
+

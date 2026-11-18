@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 import os
 import sys
 import csv
@@ -15,7 +15,7 @@ def load_metric_thresholds():
     """Load numeric minimum group sizes from the project metric dictionary."""
     import pandas as pd
 
-    path = ROOT / "03_Data" / "csv" / "metric_dictionary.csv"
+    path = ROOT / "Data" / "metric_dictionary.csv"
     if not path.exists():
         raise FileNotFoundError(f"Metric dictionary not found: {path}")
 
@@ -278,3 +278,4 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

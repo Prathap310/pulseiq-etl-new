@@ -1,10 +1,10 @@
-"""SQL query builder for Task 18 headcount and attrition metrics."""
+﻿"""SQL query builder for Task 18 headcount and attrition metrics."""
 
 from __future__ import annotations
 
 import re
 
-from Src.kpi_explorer import (
+from Source.kpi_explorer import (
     ExplorerAuthorizationError,
     ExplorerPrivacyError,
     get_metric,
@@ -450,3 +450,4 @@ def build_risk_query(
 
     params.append(threshold)
     return sql, params
+
