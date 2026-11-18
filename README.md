@@ -151,10 +151,10 @@ Reports/Task16/Evidence/Task16_Evidence.md
 
 ## Project Phases
 
-- **Phase 1:** Tasks 1–5
-- **Phase 2:** Tasks 6–10
-- **Phase 3:** Tasks 11–15
-- **Phase 4:** Task 16
+- **Phase 1:** Tasks 1â€“5
+- **Phase 2:** Tasks 6â€“10
+- **Phase 3:** Tasks 11â€“15
+- **Phase 4:** Task 16-20
 
 Each phase folder contains its relevant application files, reports, datasets, screenshots, and documentation.
 
