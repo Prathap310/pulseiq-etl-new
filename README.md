@@ -1,3 +1,34 @@
+﻿<!-- PULSEIQ-LIVE-LINKS-START -->
+## Live PulseIQ Application
+
+### Live Dashboard
+
+[Open PulseIQ Workforce Dashboard](https://prathap310-pulseiq-etl-new-05-starterapp-6to3kk.streamlit.app/)
+
+Explore:
+- Workforce and Headcount Dashboard
+- Custom KPI Builder
+- KPI Explorer
+
+### Analytics API
+
+[View Analytics API Source Code](https://github.com/Prathap310/pulseiq-etl-new/tree/task20/final-release-readiness/API)
+
+API endpoints:
+- `/health`
+- `/metrics`
+- `/freshness`
+- `/metrics/{metric_id}`
+- `/metrics/{metric_id}/lineage`
+
+**Live API URL:** Pending confirmation of the deployed API address.
+
+### Project Deliverables
+
+[View Phase 4 – Tasks 16–20](https://github.com/Prathap310/pulseiq-etl-new/tree/task20/final-release-readiness/phase-4)
+
+<!-- PULSEIQ-LIVE-LINKS-END -->
+
 # PulseIQ Analytics Project
 
 ## Project Overview
@@ -151,9 +182,9 @@ Reports/Task16/Evidence/Task16_Evidence.md
 
 ## Project Phases
 
-- **Phase 1:** Tasks 1�5
-- **Phase 2:** Tasks 6�10
-- **Phase 3:** Tasks 11�15
+- **Phase 1:** Tasks 1–5
+- **Phase 2:** Tasks 6–10
+- **Phase 3:** Tasks 11–15
 - **Phase 4:** Task 16
 
 Each phase folder contains its relevant application files, reports, datasets, screenshots, and documentation.
@@ -165,3 +196,4 @@ The original project files remain in their existing locations. The phase folders
 ## Repository
 
 All project phases are maintained in this single GitHub repository.
+
