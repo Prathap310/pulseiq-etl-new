@@ -3,7 +3,7 @@
 
 ### Live Dashboard
 
-[Open PulseIQ Workforce Dashboard](https://prathap310-pulseiq-etl-new-05-starterapp-6to3kk.streamlit.app/)
+[Open PulseIQ Workforce Dashboard](https://pulseiq-prathap.streamlit.app?utm_)
 
 Explore:
 - Workforce and Headcount Dashboard
