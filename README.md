@@ -21,7 +21,7 @@ API endpoints:
 - `/metrics/{metric_id}`
 - `/metrics/{metric_id}/lineage`
 
-**Live API URL:** Pending confirmation of the deployed API address.
+**Live API URL:** https://pulseiq-etl-new.onrender.com/docs
 
 ### Project Deliverables
 
@@ -196,4 +196,5 @@ The original project files remain in their existing locations. The phase folders
 ## Repository
 
 All project phases are maintained in this single GitHub repository.
+
 
