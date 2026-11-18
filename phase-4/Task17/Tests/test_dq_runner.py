@@ -1,0 +1,119 @@
+﻿import sys
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+import os
+import time
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "Data_Quality"))
+
+import run_dq_checks as dq
+
+
+class TestDQRunner(unittest.TestCase):
+
+    def test_all_14_checks_are_defined(self):
+        self.assertEqual(len(dq.CHECKS), 14)
+        self.assertEqual(len({check[0] for check in dq.CHECKS}), 14)
+
+    def test_critical_and_warning_severities_are_defined(self):
+        severities = {check[3] for check in dq.CHECKS}
+        self.assertEqual(severities, {"critical", "warning"})
+
+    def test_missing_pipeline_summary_fails_freshness_check(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch.object(dq, "ROOT", Path(temp_dir)):
+                self.assertEqual(dq.pipeline_bad_rows(), 1)
+
+    def test_fresh_pipeline_summary_passes_freshness_check(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            logs = Path(temp_dir) / "Logs"
+            logs.mkdir()
+            summary = logs / "etl_summary.csv"
+            summary.write_text("status\nsuccess\n", encoding="utf-8")
+
+            with patch.object(dq, "ROOT", Path(temp_dir)):
+                self.assertEqual(dq.pipeline_bad_rows(), 0)
+
+    def test_stale_pipeline_summary_fails_freshness_check(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            logs = Path(temp_dir) / "Logs"
+            logs.mkdir()
+            summary = logs / "etl_summary.csv"
+            summary.write_text("status\nsuccess\n", encoding="utf-8")
+            old_time = time.time() - (25 * 60 * 60)
+            os.utime(summary, (old_time, old_time))
+
+            with patch.object(dq, "ROOT", Path(temp_dir)):
+                self.assertEqual(dq.pipeline_bad_rows(), 1)
+
+    def test_c14_checks_published_view_exposures(self):
+        cursor = MagicMock()
+        cursor.fetchone.return_value = (1,)
+
+        metric_ids = [
+            "M01", "M02", "M03", "M04", "M05", "M06",
+            "M10", "M11", "M12", "M13", "M14", "M22",
+            "M23", "M25", "M27"
+        ]
+        thresholds = {metric_id: 5 for metric_id in metric_ids}
+
+        total, details = dq.dq_c14_bad_groups(cursor, thresholds)
+
+        self.assertEqual(total, 15)
+        self.assertEqual(cursor.execute.call_count, 15)
+        self.assertIn("published_view_exposures=15", details)
+        self.assertIn("M07/M08/M09/M15 excluded", details)
+
+        for call in cursor.execute.call_args_list:
+            query = call.args[0]
+            self.assertIn("privacy_threshold_met", query)
+            self.assertIn("IS NOT NULL", query)
+
+
+    def test_failed_check_rolls_back_to_savepoint_and_continues(self):
+        cursor = MagicMock()
+        cursor.fetchone.side_effect = [("dw.dq_results",)] + [(0,)] * 30
+
+        def execute_side_effect(sql, params=None):
+            if "WITH p AS (" in sql:
+                raise RuntimeError("Simulated DQ check failure")
+
+        cursor.execute.side_effect = execute_side_effect
+
+        connection = MagicMock()
+        connection.__enter__.return_value = connection
+        connection.cursor.return_value.__enter__.return_value = cursor
+
+        with patch.object(dq, "connect_db", return_value=connection), \
+             patch.object(dq, "pipeline_bad_rows", return_value=0), \
+             patch.object(
+                 dq,
+                 "load_metric_thresholds",
+                 return_value=dict.fromkeys([
+                     "M01", "M02", "M03", "M04", "M05", "M06",
+                     "M10", "M11", "M12", "M13", "M14", "M22",
+                     "M23", "M25", "M27"
+                 ], 5)
+             ):
+
+            result = dq.main()
+
+        executed_sql = [
+            call.args[0] for call in cursor.execute.call_args_list
+        ]
+
+        self.assertEqual(result, 1)
+        self.assertIn("ROLLBACK TO SAVEPOINT dq_check", executed_sql)
+        self.assertEqual(
+            executed_sql.count("SAVEPOINT dq_check"), 14
+        )
+        self.assertEqual(
+            executed_sql.count("RELEASE SAVEPOINT dq_check"), 14
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
